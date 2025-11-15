@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32_Website</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body class="dark-mode">
+    <label class="dark-mode-switch">
+        <input type="checkbox" id="darkModeToggle" checked>
+        <span class="slider"></span>
+    </label>
+
+    <div name="main">
+        <h1>ESP32_Website</h1>
+        <fieldset>
+            <legend>Wlan-Settings</legend>
+            <table>
+                <tr>
+                    <td>Wlan Name:</td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Wlan passwort:</td>
+                    <td><input type="password"></td>
+                </tr>
+            </table>
+        </fieldset>
+
+        <fieldset>
+            <legend>System:</legend>
+            <table>
+                <tr>
+                    <td>Zeit:</td>
+                    <td><input type="time"></td>
+                </tr>
+                <tr>
+                    <td>Datum:</td>
+                    <td><input type="date"></td>
+                </tr>
+            </table>
+        </fieldset>
+        <fieldset>
+            <legend>Bilder:</legend>
+            <table>
+                <tr>
+                    <td>Frühling:</td>
+                    <td><input type="file" accept=".png"></td>
+                </tr>
+                <tr>
+                    <td>Sommer:</td>
+                    <td><input type="file" accept=".png"></td>
+                </tr>
+                <tr>
+                    <td>Herbst:</td>
+                    <td><input type="file" accept=".png"></td>
+                </tr>
+                <tr>
+                    <td>Winter:</td>
+                    <td><input type="file" accept=".png"></td>
+                </tr>
+            </table>
+        </fieldset>
+        <fieldset>
+            <legend>Anzeige</legend>
+            <table>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td>Zeit</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td>Wetter</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td>Datum</td>
+                </tr>
+            </table>
+        </fieldset>
+    </div>
+</body>
+<footer>
+    Created by Zitronenklette44
+</footer>
+</html>
