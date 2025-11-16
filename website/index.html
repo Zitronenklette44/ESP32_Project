@@ -1,91 +1,137 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESP32_Website</title>
     <link rel="stylesheet" href="style2.css">
-    <!-- <script src="script.js" defer></script> -->
+    <script src="script.js" defer></script>
 </head>
-<!-- <body class="dark-mode"> -->
 <body>
-    <!-- <label class="dark-mode-switch">
-        <input type="checkbox" id="darkModeToggle" checked>
-        <span class="slider"></span>
-    </label> -->
+    <form>
 
-    <div name="main">
-        <h1>ESP32_Website</h1>
-        <fieldset>
-            <legend>Wlan-Settings</legend>
-            <table>
-                <tr>
-                    <td>Wlan Name:</td>
-                    <td><input type="text"></td>
-                </tr>
-                <tr>
-                    <td>Wlan passwort:</td>
-                    <td><input type="password"></td>
-                </tr>
-            </table>
-        </fieldset>
+        <div name="main">
+            <h1>ESP32_Website</h1>
+            <fieldset>
+                <legend>Wlan-Settings</legend>
+                <table>
+                    <tr>
+                        <td>Wlan Name:</td>
+                        <td><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td>Wlan passwort:</td>
+                        <td><input type="password"></td>
+                    </tr>
+                </table>
+            </fieldset>
 
-        <fieldset>
-            <legend>System:</legend>
-            <table>
-                <tr>
-                    <td>Zeit:</td>
-                    <td><input type="time"></td>
-                </tr>
-                <tr>
-                    <td>Datum:</td>
-                    <td><input type="date"></td>
-                </tr>
-            </table>
-        </fieldset>
-        <fieldset>
-            <legend>Bilder:</legend>
-            <table>
-                <tr>
-                    <td>Frühling:</td>
-                    <td><input type="file" accept=".png"></td>
-                </tr>
-                <tr>
-                    <td>Sommer:</td>
-                    <td><input type="file" accept=".png"></td>
-                </tr>
-                <tr>
-                    <td>Herbst:</td>
-                    <td><input type="file" accept=".png"></td>
-                </tr>
-                <tr>
-                    <td>Winter:</td>
-                    <td><input type="file" accept=".png"></td>
-                </tr>
-            </table>
-        </fieldset>
-        <fieldset>
-            <legend>Anzeige</legend>
-            <table>
-                <tr>
-                    <td>Zeit</td>
-                    <td><input type="checkbox"></td>
-                </tr>
-                <tr>
-                    <td>Wetter</td>
-                    <td><input type="checkbox"></td>
-                </tr>
-                <tr>
-                    <td>Datum</td>
-                    <td><input type="checkbox"></td>
-                </tr>
-            </table>
-        </fieldset>
-    </div>
+            <fieldset>
+                <legend>System:</legend>
+                <table>
+                    <tr>
+                        <td>Automatisch:</td>
+                        <td>
+                            <label class="toggleSwitch">
+                                <input type="checkbox" id="autoTime">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Zeit:</td>
+                        <td><input type="time" id="time"></td>
+                    </tr>
+                    <tr>
+                        <td>Datum:</td>
+                        <td><input type="date" id="date"></td>
+                    </tr>
+                </table>
+            </fieldset>
+            <fieldset>
+                <legend>Bilder:</legend>
+                <p class="warning">Alle Bilder müssen eine größe von 135x256 pixeln haben</p>
+                <table>
+                    <tr>
+                        <td>Frühling:</td>
+                        <td>
+                            <label class="file-upload">
+                            <span>Datei Hochladen</span>
+                            <input type="file" accept=".png, .jpg, .jpeg">
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sommer:</td>
+                        <td>
+                            <label class="file-upload">
+                            <span>Datei Hochladen</span>
+                            <input type="file" accept=".png, .jpg, .jpeg">
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Herbst:</td>
+                        <td>
+                            <label class="file-upload">
+                            <span>Datei Hochladen</span>
+                            <input type="file" accept=".png, .jpg, .jpeg">
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Winter:</td>
+                        <td>
+                            <label class="file-upload">
+                            <span>Datei Hochladen</span>
+                            <input type="file" accept=".png, .jpg, .jpeg">
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+            </fieldset>
+            <fieldset>
+                <legend>Anzeige</legend>
+                <table>
+                    <tr>
+                        <td>Zeit</td>
+                        <td>
+                            <label class="toggleSwitch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Wetter</td>
+                        <td>
+                            <label class="toggleSwitch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Datum</td>
+                        <td>
+                            <label class="toggleSwitch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+            </fieldset>
+        </div>
+        <div class="flex">
+            <input type="submit" value="Änderungen Speichern">
+            <input type="reset" value="Änderungen verwerfen">
+        </div>
+    </form>
 </body>
 <footer>
     <div class="left"><a href="https://github.com/Zitronenklette44/ESP32_Project/">GitHub</a></div>
     <div class="middle">ESP_32 Project<br>LILYGO Q125<br></div>
-    <div class="right">© 2025 Zitronenklette44</div>
+    <div class="right">© 2025 Zitronenklette44<br>Version: 0.1</div>
 </footer>
 </html>
