@@ -15,7 +15,6 @@ const char* pwd = "123456789";
 
 WebServer server(80);
 
-// put function declarations here:
 void buttonCheck(void *parameter);
 void wifiTask(void *parameter);
 
