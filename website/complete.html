@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32_Website</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Änderungen werden gespeichert...</h1>
+    <br><br>
+    <div class="middle">
+        <p id="Weiterleitung"></p>
+    </div>
+
+    <script>
+        let tfield = document.getElementById("Weiterleitung");
+        let i = 5;
+
+        let countdown = setInterval(() => {
+            tfield.textContent = "Weiterleiten in " + i + "...";
+            i--;
+            if (i < 0) {
+                clearInterval(countdown);
+                tfield.textContent = "Weiterleitung!";
+                window.location.href = "index.html";
+            }
+        }, 1000);
+    </script>
+
+</body>
+</html>
