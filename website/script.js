@@ -1,5 +1,3 @@
-
-
 // === Form validation ===
 document.querySelectorAll('form').forEach(form => {
     form.addEventListener('submit', (e) => {
@@ -21,24 +19,22 @@ document.querySelectorAll('form').forEach(form => {
     });
 });
 
-document.getElementById("autoTime").addEventListener('change', (e) =>{
+
+// === autoTime handling ===
+document.getElementById("autoTime").addEventListener('change', () => {
     var self = document.getElementById("autoTime");
     var time = document.getElementById("time");
     var date = document.getElementById("date");
 
-    if(self.checked){
-        time.disabled = true;
-        date.disabled = true;
-    }else{
-        time.disabled = false;
-        date.disabled = false;
-    }
-})
+    time.disabled = self.checked;
+    date.disabled = self.checked;
+});
 
+
+// === show filename in label ===
 document.querySelectorAll('.file-upload input').forEach(input => {
     input.addEventListener('change', () => {
         const fileName = input.files[0]?.name || "Datei Hochladen";
         input.previousElementSibling.textContent = fileName;
     });
 });
-

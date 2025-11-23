@@ -16,7 +16,6 @@ using namespace fs;
 #define LOGSIZE 50
 
 TFT_eSPI display = TFT_eSPI();
-PNG png;
 
 String ssid = "ESP_Test";
 String pwd = "123456789";
@@ -24,13 +23,13 @@ String logs[LOGSIZE];
 
 WebServer server(80);
 
+File uploadFile;
+
 //Threads
 TaskHandle_t buttonHandler = NULL;
 TaskHandle_t wifiHandler = NULL;
 
 // Functions
-void myDraw(PNGDRAW *pDraw);
-
 void buttonCheck(void *parameter);
 void wifiTask(void *parameter);
 void startWifi();
@@ -39,6 +38,8 @@ void handleRoot();
 void handleSubmit();
 void handleDev();
 void handleFileUpload();
+
+void showPNGFile(String path);
 
 void addLog(String s); 
 
@@ -77,8 +78,14 @@ void loop(){
 		// Button Thread
 		addLog("started Button tracking");
 		xTaskCreatePinnedToCore(buttonCheck, "Buttons", 4096, NULL, 1, &buttonHandler, 1);
-		
-		
+
+        File f = LittleFS.open("/images/fruehling.png", "r");
+        if(!f) Serial.println("File not found!");
+        else Serial.println("File exists!");
+        f.close();
+
+		showPNGFile("/images/fruehling.png");
+
 		trueSetup = true;
 	}
 
@@ -156,12 +163,10 @@ void handleDev() {
 
 void handleSubmit() {
 	File file = LittleFS.open("/complete.html", "r");
-    if(!file){
-        server.send(404, "text/plain", "File not found");
-        return;
+    if(file){
+        server.streamFile(file, "text/html");
+        file.close();
     }
-    server.streamFile(file, "text/html");
-    file.close();
 
 	String ssid = server.arg("ssid");
 	String pass = server.arg("ssidPwd");
@@ -177,7 +182,6 @@ void handleSubmit() {
 		int month = dateString.substring(5,7).toInt();
 		int day = dateString.substring(8,9).toInt();
 	}
-	
 	
 	//server.send(200, "text/html", "Received! SSID=" + ssid + " Pass=" + pass);
 	Serial.println("Received WiFi credentials:");
@@ -207,11 +211,34 @@ void startWifi(){
 	server.on("/index.html", handleRoot);
     server.on("/dev.html", handleDev);
     server.on("/complete.html", HTTP_POST, handleSubmit, handleFileUpload);
+    server.on("/complete.html", HTTP_GET, [](){
+    File f = LittleFS.open("/complete.html", "r");
+        if(!f){
+            server.send(404, "text/plain", "File not found");
+            return;
+        }
+        server.streamFile(f, "text/html");
+        f.close();
+    });
+
 
     server.serveStatic("/style.css", LittleFS, "/style.css");
     server.serveStatic("/script.js", LittleFS, "/script.js");
 	xTaskCreatePinnedToCore(wifiTask, "wifi", 4096, NULL, 1, &wifiHandler, 1);
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 	server.begin();
+}
+
+void clearUploadFolder() {
+    File dir = LittleFS.open("/images");
+    File file = dir.openNextFile();
+
+    while (file) {
+        String path = file.name();
+        Serial.println("Deleting: " + path);
+        LittleFS.remove(path);
+        file = dir.openNextFile();
+    }
 }
 
 String path = "";
@@ -245,35 +272,76 @@ void handleFileUpload() {
     }
 }
 
-void clearUploadFolder() {
-    File dir = LittleFS.open("/images");
-    File file = dir.openNextFile();
 
-    while (file) {
-        String path = file.name();
-        Serial.println("Deleting: " + path);
-        LittleFS.remove(path);
-        file = dir.openNextFile();
+// for displaying an png file currently not working do to unknown issues with opening the file
+PNG png;
+File pngFile;
+
+// open callback
+void* pngOpen(const char *filename, int *pFileSize) {
+    File* pf = new File(); 
+    
+    *pf = LittleFS.open(filename, "r"); 
+    
+    if (!(*pf)) { 
+        Serial.println("PNG file cannot be opened");
+        delete pf; 
+        return nullptr;
+    }
+
+    if (pFileSize) *pFileSize = pf->size();
+    
+    return pf; 
+}
+
+
+
+void pngClose(void *pFile) {
+    File *f = (File*)pFile;
+    if(f){
+        f->close();
+        delete f;
     }
 }
 
-void myDraw(PNGDRAW *pDraw) {
-    display.pushImage(pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight, pDraw->pPixels);
+
+// read callback
+int pngRead(PNGFILE *pFile, uint8_t *pBuf, int iLen) {
+    File *f = (File*)pFile;
+    return f->read(pBuf, iLen);
 }
 
-void showPNG(String path) {
-    File file = LittleFS.open(path, "r");
-    if(!file){
-        Serial.println("File not found: " + String(path));
-        return;
-    }
+// seek callback
+int pngSeek(PNGFILE *pFile, int32_t iPosition) {
+    File *f = (File*)pFile;
+    return f->seek(iPosition) ? 0 : -1;
+}
 
-    if(png.openRAM(file, myDraw) == PNG_SUCCESS){
-        png.decode(0, 0, PNG_FULL); // zeigt Bild bei 0,0 an
-        png.close();
-    } else {
-        Serial.println("Failed to open PNG");
+int pngDraw(PNGDRAW *pDraw) {
+    // pDraw->iWidth pixels in RGB888
+    uint16_t line[pDraw->iWidth];
+    for(int x=0; x<pDraw->iWidth; x++){
+        uint8_t r = pDraw->pPixels[x*3 + 0];
+        uint8_t g = pDraw->pPixels[x*3 + 1];
+        uint8_t b = pDraw->pPixels[x*3 + 2];
+        line[x] = ((r & 0xF8)<<8) | ((g & 0xFC)<<3) | (b>>3);
     }
+    display.pushImage(0, pDraw->y, pDraw->iWidth, 1, line); // x = 0
+    return 1;
+}
 
-    file.close();
+void showPNGFile(String path) {
+    int16_t rc = png.open(path.c_str(), pngOpen, pngClose, pngRead, pngSeek, pngDraw);
+
+    if(rc != PNG_SUCCESS){
+        Serial.print("Failed to open PNG. Error code: ");
+        Serial.println(rc);
+        return; // Abbruch
+    }
+    
+    display.startWrite();
+    png.decode(NULL, 0);
+    png.close();
+    display.endWrite();
+    Serial.println("PNG drawn successfully");
 }
