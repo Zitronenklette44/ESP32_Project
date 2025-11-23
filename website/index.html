@@ -18,11 +18,11 @@
                 <table>
                     <tr>
                         <td>Wlan Name:</td>
-                        <td><input type="text" name="ssid"></td>
+                        <td><input type="text" name="ssid" value="{SSID}"></td>
                     </tr>
                     <tr>
                         <td>Wlan Passwort:</td>
-                        <td><input type="password" name="ssidPwd"></td>
+                        <td><input type="password" name="ssidPwd" value="{SSIDPWD}"></td>
                     </tr>
                 </table>
             </fieldset>
@@ -34,18 +34,18 @@
                         <td>Automatisch:</td>
                         <td>
                             <label class="toggleSwitch">
-                                <input type="checkbox" id="autoTime" name="autoTime">
+                                <input type="checkbox" id="autoTime" name="autoTime" {AUOTTIME_SELECTED}>
                                 <span class="slider"></span>
                             </label>
                         </td>
                     </tr>
                     <tr>
                         <td>Zeit:</td>
-                        <td><input type="time" id="time" name="time"></td>
+                        <td><input type="time" id="time" name="time" value="{TIME}"></td>
                     </tr>
                     <tr>
                         <td>Datum:</td>
-                        <td><input type="date" id="date" name="date"></td>
+                        <td><input type="date" id="date" name="date" value="{DATE}"></td>
                     </tr>
                 </table>
             </fieldset>
@@ -100,7 +100,7 @@
                         <td>Zeit</td>
                         <td>
                             <label class="toggleSwitch">
-                                <input type="checkbox" name="showTime">
+                                <input type="checkbox" name="showTime" {DISPLAY_OPTIONS_TIME}>
                                 <span class="slider"></span>
                             </label>
                         </td>
@@ -109,7 +109,7 @@
                         <td>Wetter</td>
                         <td>
                             <label class="toggleSwitch">
-                                <input type="checkbox" name="showWeather">
+                                <input type="checkbox" name="showWeather" {DISPLAY_OPTIONS_WEATHER}>
                                 <span class="slider"></span>
                             </label>
                         </td>
@@ -118,7 +118,7 @@
                         <td>Datum</td>
                         <td>
                             <label class="toggleSwitch">
-                                <input type="checkbox" name="showDate">
+                                <input type="checkbox" name="showDate" {DISPLAY_OPTIONS_DATE}>
                                 <span class="slider"></span>
                             </label>
                         </td>

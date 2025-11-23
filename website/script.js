@@ -38,3 +38,17 @@ document.querySelectorAll('.file-upload input').forEach(input => {
         input.previousElementSibling.textContent = fileName;
     });
 });
+
+
+function setup(){
+    var autoTime = document.getElementById("autoTime");
+    var time = document.getElementById("time");
+    var date = document.getElementById("date");
+
+    time.disabled = autoTime.checked;
+    date.disabled = autoTime.checked;
+}
+
+
+
+setup();
