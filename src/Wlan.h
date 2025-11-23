@@ -4,7 +4,9 @@
 #include <WiFi.h>
 #include <LittleFS.h>
 #include <vector>
+#include <utils/SessionToken.h>
 using std::vector;
+
 
 class Wlan {
 private:
@@ -19,6 +21,7 @@ private:
     // internal helpers
     void handleRoot();
     void handleDev();
+    void handleLogin();
     void handleSubmit();
     void handleFileUpload();
 

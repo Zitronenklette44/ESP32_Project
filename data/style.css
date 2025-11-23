@@ -216,8 +216,9 @@ table.equalSize td {
 }
 
 .logs{
-    width: 100%;
+    width: 99%;
     min-height: 200px;
     background-color: color-mix(in srgb, var(--primary) 70%, white);
     border-radius: 15px;
+    padding: 5px;
 }

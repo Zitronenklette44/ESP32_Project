@@ -2,6 +2,10 @@
 
 static Wlan* instance = nullptr;
 
+String username = "admin";
+String userPSW = "";
+SessionToken sessionToken;
+
 Wlan::Wlan(vector<String>& vals) : server(80), values(vals), wifiHandler(NULL), changedValues(false), startSSID(""), startPWD(""), active(false){
     instance = this; 
 }
@@ -32,7 +36,28 @@ void Wlan::startWifi() {
     // register server routes
     server.on("/", [](){ instance->handleRoot(); });
     server.on("/index.html", [](){ instance->handleRoot(); });
+
+    server.on("/login.html", [](){ instance->handleLogin(); });
+    server.on("/loginConfirmation", HTTP_POST, [](){ 
+        String recievedUserName = instance->server.arg("userName");
+        String recievedUserPsw = instance->server.arg("userPSW");
+
+        if(!recievedUserName.equals(username) || !recievedUserPsw.equals(userPSW)){
+            instance->server.send(404, "text/plain", "Invalid Login info!");
+            return;
+        }
+
+        sessionToken.newToken();
+        String html = "<!DOCTYPE html><html><head>"
+                    "<meta http-equiv='refresh' content='0; URL=/dev.html' />"
+                    "</head><body></body></html>";
+
+        instance->server.sendHeader("Set-Cookie", "session=" + sessionToken.getToken());
+        instance->server.send(200, "text/html", html);  
+    });
+    
     server.on("/dev.html", [](){ instance->handleDev(); });
+    
     server.on("/complete.html", HTTP_POST, [](){ instance->handleSubmit(); }, [](){ instance->handleFileUpload(); });
     server.on("/complete.html", HTTP_GET, [](){
         File f = LittleFS.open("/complete.html", "r");
@@ -109,7 +134,46 @@ void Wlan::handleRoot() {
 }
 
 void Wlan::handleDev() {
+    String cookie = server.header("Cookie");
+    Serial.println("recieved cookie ->" +cookie);
+
+    if(cookie.indexOf(/*"session=" + */sessionToken.getToken()) == -1){
+        server.sendHeader("Location", "/login.html");
+        server.send(302, "text/plain", "");
+        Serial.println("invalid Session redirecting!");
+        return;
+    }
+
     File file = LittleFS.open("/dev.html", "r");
+    if(!file){
+        server.send(404, "text/plain", "File not found");
+        return;
+    }
+    
+    String html;
+    while(file.available()){
+        html += char(file.read());
+    }
+    //server.streamFile(file, "text/html");
+    file.close();
+    
+    html.replace("", "");
+
+    server.send(200, "text/html", html);
+
+
+}
+
+void Wlan::handleLogin() {
+    String cookie = server.header("Cookie");
+
+    if(cookie.indexOf("session=" + sessionToken.getToken()) != -1){
+        server.sendHeader("Location", "/dev.html");
+        server.send(302, "text/plain", "");
+        return;
+    }
+
+    File file = LittleFS.open("/login.html", "r");
     if(!file){
         server.send(404, "text/plain", "File not found");
         return;

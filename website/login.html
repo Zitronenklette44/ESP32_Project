@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32_Website</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>ESP32_Website</h1>
+
+    <form action="/loginConfirmation" method="post">
+
+        <fieldset>
+            <legend>Login</legend>
+            <table>
+                <tr>
+                    <td>Benutzername:</td>
+                    <td><input type="text" name="userName"></td>
+                </tr>
+                <tr>
+                    <td>Passwort:</td>
+                    <td><input type="password" name="userPSW"></td>
+                </tr>
+            </table>
+        </fieldset>
+        <div class="flex">
+            <input type="submit" value="Anmelden">
+            <input type="reset" value="Löschen">
+        </div>
+
+    </form>
+
+    
+</body>
+</html>

@@ -10,20 +10,42 @@
     <h1>Debug Options/Settings</h1>
     <a class="dev" href="index.html">Return</a>
     <div class="main">
+        <form action="dev.html" method="post">
+            <fieldset>
+                <legend>Login</legend>
+                <table>
+                    <tr>
+                        <td>Benutzername:</td>
+                        <td><input type="text" name="newUserName" value="{USERNAME}"></td>
+                    </tr>
+                    <tr>
+                        <td>Passwort:</td>
+                        <td><input type="password" name="newUserPWD" value="{USERPSW}"></td>
+                    </tr>
+                </table>
+                <br>
+                <div class="flex">
+                    <input type="submit" value="Speichern">
+                    <input type="reset" value="Zurücksetzen">
+                </div>
+                
+            </fieldset>
+        </form>
+
         <fieldset>
             <legend>System Infos</legend>
             <table>
                 <tr>
                     <td>Uptime:</td>
-                    <td>Value</td>
+                    <td>{UPTIME}</td>
                 </tr>
                 <tr>
                     <td>Wifi status:</td>
-                    <td>Connected</td>
+                    <td>{WIFISTATUS}</td>
                 </tr>
                 <tr>
                     <td>IP-address</td>
-                    <td>123.456.789.0</td>
+                    <td>{IPADDRESS}</td>
                 </tr>
             </table>
         </fieldset>
@@ -32,11 +54,11 @@
             <table>
                 <tr>
                     <td>Last Successful Connection:</td>
-                    <td>Never</td>
+                    <td>{LAST_CONNECTION}</td>
                 </tr>
                 <tr>
                     <td>Last API call</td>
-                    <td>Never</td>
+                    <td>{LAST_API_CALL}</td>
                 </tr>
             </table>
         </fieldset>
@@ -44,7 +66,7 @@
             <legend>Actions</legend>
             <table class="equalSize">
                 <tr>
-                    <td><input type="button" value="Reconnect Wifi"></td>
+                    <td><input type="button" value="Connect Wifi"></td>
                     <td><input type="button" value="Restart"></td>
                 </tr>
                 <tr>
@@ -56,7 +78,7 @@
 
         <fieldset>
             <legend>Logs</legend>
-            <p class="logs"></p>
+            <p class="logs">{LOGS}</p>
         </fieldset>
 
 
