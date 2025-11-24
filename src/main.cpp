@@ -7,6 +7,7 @@
 #include <PNGdec.h>
 #include <Display.h>
 #include "Wlan.h"
+#include "Stats.h"
 
 using namespace fs;
 
@@ -47,7 +48,7 @@ void setup(){
 	LittleFS.mkdir("/images");
 
     displayM.init();
-    wlan.init(values[0], values[1]);
+    wlan.init();
 
 	pinMode(ButtonTop, INPUT_PULLUP);
 	pinMode(ButtonBottom, INPUT_PULLUP);
@@ -65,6 +66,7 @@ void loop(){
 		trueSetup = true;
 	}
 
+    Stats::getInstance()->update();
 
 }
 
@@ -93,7 +95,8 @@ void buttonCheck(void *parameter){
         if(bottomPressed != wasBottomPressed && now - lastBottomChange > debounceDelay){
             lastBottomChange = now;
             if(bottomPressed){
-                Serial.println("Bottom pressed");
+                Serial.println("Closing WiFi");
+                wlan.endWifi();
             }
             wasBottomPressed = bottomPressed;
         }

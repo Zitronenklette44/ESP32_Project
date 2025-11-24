@@ -24,6 +24,7 @@ private:
     void handleLogin();
     void handleSubmit();
     void handleFileUpload();
+    bool validateToken(String cookieHeader);
 
     // wrapper task for FreeRTOS
     static void wifiTaskWrapper(void* param);
@@ -32,7 +33,7 @@ public:
     Wlan(vector<String>& values);
     ~Wlan();
 
-    void init(String ssid, String pwd);
+    void init();
     void startWifi();
     void endWifi();
 

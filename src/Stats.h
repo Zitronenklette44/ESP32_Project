@@ -6,20 +6,29 @@
 class Stats
 {
 private:
-    uint32_t uptime;
+    uint64_t uptime;
+    unsigned long lastUpdate;
     bool wifiStatus;
     String ipAddress;
     Timestamp lastConnection;
     Timestamp lastApiCall; 
+    static Stats* instance;
 
+    Stats() : uptime(0), lastUpdate(0), wifiStatus(false), ipAddress(""), lastConnection{1,1,1970,0,0,0}, lastApiCall{1,1,1970,0,0,0} {}
 
 public:
-    Stats();
     ~Stats();
 
-    uint32_t getUptime() const;
-    void setUptime(uint32_t value);
-    void addUptime(uint32_t value);
+    static Stats* getInstance(){
+        if(!instance){
+            instance = new Stats();
+        }
+        return instance;
+    };
+
+    uint64_t getUptime() const;
+    void setUptime(uint64_t value);
+    void addUptime(uint64_t value);
 
     bool getWifiStatus() const;
     void setWifiStatus(bool value);
@@ -32,5 +41,7 @@ public:
 
     Timestamp getLastApiCall() const;
     void setLastApiCall(Timestamp value);
+
+    void update();
 
 };

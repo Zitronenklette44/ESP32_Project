@@ -10,7 +10,7 @@
     <h1>Debug Options/Settings</h1>
     <a class="dev" href="index.html">Return</a>
     <div class="main">
-        <form action="loginConfirmation" method="post">
+        <form action="changeUserInfos" method="post">
             <fieldset>
                 <legend>Login</legend>
                 <table>
@@ -31,21 +31,61 @@
                 
             </fieldset>
         </form>
+        <script>
+
+            async function updateLogs() {
+                try {
+                    const res = await fetch("/api/logs");
+                    const text = await res.text();
+                    document.getElementById("logs").innerText = text;
+                } catch (e) {
+                    console.log("Log update error:", e);
+                }
+            }
+
+            async function updateInfos() {
+                try {
+                    const res = await fetch("/api/infos");
+                    const text = await res.text();
+                    var parts = text.split("; ");
+
+                    for(var i = 0; i < parts.length; i++){
+                        var partName = parts[i].split("=")[0];
+                        var partValue = parts[i].split("=")[1];
+                        document.getElementById(partName).innerHTML = partValue;
+                    }
+
+                } catch (e) {
+                    consol.log("Infos update error:", e);
+                }
+            }
+
+            // update every 3 seconds
+            setInterval(updateLogs, 5000);
+            setInterval(updateInfos, 1000);
+
+            // first load immediately
+            updateLogs();
+            updateInfos();
+
+
+
+        </script>
 
         <fieldset>
             <legend>System Infos</legend>
             <table>
                 <tr>
                     <td>Uptime:</td>
-                    <td>{UPTIME}</td>
+                    <td><p id="UPTIME"></p></td>
                 </tr>
                 <tr>
                     <td>Wifi status:</td>
-                    <td>{WIFISTATUS}</td>
+                    <td><p id="WIFISTATUS"></p></td>
                 </tr>
                 <tr>
                     <td>IP-address</td>
-                    <td>{IPADDRESS}</td>
+                    <td><p id="IPADDRESS"></p></td>
                 </tr>
             </table>
         </fieldset>
@@ -54,11 +94,11 @@
             <table>
                 <tr>
                     <td>Last Successful Connection:</td>
-                    <td>{LAST_CONNECTION}</td>
+                    <td><p id="LAST_CONNECTION"></p></td>
                 </tr>
                 <tr>
                     <td>Last API call</td>
-                    <td>{LAST_API_CALL}</td>
+                    <td><p id="LAST_API_CALL"></p></td>
                 </tr>
             </table>
         </fieldset>
@@ -78,7 +118,7 @@
 
         <fieldset>
             <legend>Logs</legend>
-            <p class="logs">{LOGS}</p>
+            <p class="logs"></p>
         </fieldset>
 
 

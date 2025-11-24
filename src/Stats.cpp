@@ -1,19 +1,19 @@
 #include <Arduino.h>
 #include "Stats.h"
 
-Stats::Stats() : uptime(0), wifiStatus(false), ipAddress(""), lastConnection{1,1,1970,0,0,0}, lastApiCall{1,1,1970,0,0,0} {}
+Stats* Stats::instance = nullptr;
 
 Stats::~Stats(){}
 
-uint32_t Stats::getUptime() const{
+uint64_t Stats::getUptime() const{
     return uptime;
 }
 
-void Stats::setUptime(uint32_t value){
+void Stats::setUptime(uint64_t value){
     uptime = value;
 }
 
-void Stats::addUptime(uint32_t value){
+void Stats::addUptime(uint64_t value){
     uptime += value;
 }
 
@@ -47,4 +47,16 @@ Timestamp Stats::getLastApiCall() const{
 
 void Stats::setLastApiCall(Timestamp value){
     lastApiCall = value;
+}
+
+void Stats::update(){
+    unsigned long now = millis();
+
+    // uptime
+    uptime += now - lastUpdate;
+    lastUpdate = now;
+
+
+
+
 }

@@ -1,29 +1,40 @@
 #pragma once
 #include <Arduino.h>
 
-struct SessionToken{
+struct SessionToken {
     String token;
     int length = 30;
-    bool wasSet = false;
+    long timestamp = 0;
+    long maxAge = 0.25 * 60 * 60 * 1000; // in ms
+
+    bool isExpired() const {
+        return millis() - timestamp > maxAge;
+    }
 
     String getToken() {
-        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_";
-        if(wasSet){
-            return token;
-        }else{
-            token = "";
-            for(int i = 0; i < length; i++){
-                token += chars.charAt(random(0, chars.length()));
-            }
-            wasSet = true;
+        if (!token.isEmpty()) {
+            return token; // still valid
+        }
+
+        if(isExpired()){
+            token = "EXPIRED";
             return token;
         }
-    };
 
-    String newToken(){
-        wasSet = false;
+        // generate new token
+        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_";
+        token = "";
+
+        for (int i = 0; i < length; i++) {
+            token += chars.charAt(random(chars.length()));
+        }
+
+        timestamp = millis();
+        return token;
+    }
+
+    String newToken() {
+        token = "";
         return getToken();
-    };
-
-
+    }
 };
