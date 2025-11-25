@@ -32,6 +32,7 @@ TaskHandle_t buttonHandler = NULL;
 // Functions
 void buttonCheck(void *parameter);
 void setupValues();
+void onWlanConnection();
 
 void setup(){
 	Logs::getInstance()->addLog("Started controller");
@@ -63,9 +64,10 @@ void loop(){
 		Logs::getInstance()->addLog("started Button tracking");
 		xTaskCreatePinnedToCore(buttonCheck, "Buttons", 4096, NULL, 1, &buttonHandler, 1);
 
-        // wlan.startWifi(5000);
-        // Clock::getInstance()->syncTimeNow();
+        wlan.startWifi(5000);
+        Clock::getInstance()->init();
 
+        Serial.println("Setup Done");
 		trueSetup = true;
 	}
 
@@ -90,6 +92,8 @@ void buttonCheck(void *parameter){
             lastTopChange = now;
             if(topPressed && !wlan.isActive()){
                 wlan.startWifi(15*60*1000);
+                Serial.println("Wlan pressed");
+                onWlanConnection();
             }
             wasTopPressed = topPressed;
         }
@@ -122,5 +126,10 @@ void setupValues(){
 
 
 
-
+void onWlanConnection(){
+    if(Stats::getInstance()->getWifiStatus()){
+        Logs::getInstance()->addLog("Started Doing Stuff with Wlan");
+        Clock::getInstance()->syncTimeNow();
+    }
+}
 

@@ -2,6 +2,7 @@
 #include <ESPmDNS.h>
 #include "Stats.h"
 #include "Logs.h"
+#include "Clock.h"
 
 static Wlan* instance = nullptr;
 
@@ -89,6 +90,8 @@ void Wlan::startWifi( long ttlMs) {
         String recievedUserName = instance->server.arg("userName");
         String recievedUserPsw = instance->server.arg("userPSW");
 
+        Logs::getInstance()->addLog("Login attempt-> recUser:" + recievedUserName + " recPwd:"+ recievedUserPsw + " corrUser:" + username + " corrPwd:" + userPSW);
+
         if(!recievedUserName.equals(username) || !recievedUserPsw.equals(userPSW)){
             instance->server.send(404, "text/plain", "Invalid Login info!");
             return;
@@ -172,36 +175,40 @@ void Wlan::startWifi( long ttlMs) {
     //server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.begin();
     active = true;
+    stopTask = false;
 
     WifiTaskData* data = new WifiTaskData();
     data->self = this;
     data->ttlMs = ttlMs; 
 
     // start task on Core 1
-    xTaskCreatePinnedToCore(wifiTaskWrapper, "wifi", 4096, data, 1, &wifiHandler, 1);
+    xTaskCreatePinnedToCore(wifiTaskWrapper, "wifi", 4096, data, 1, &wifiHandler, 0);
 
-    Stats::getInstance()->setWifiStatus(true);
-    Timestamp t;
-    t.second = 10;
-    t.minute = 15;
-    t.hour = 22;
-    t.day = 17;
-    t.month = 11;
-    t.year = 2025;
-    Stats::getInstance()->setLastConnection(t);
-    Logs::getInstance()->addLog("WiFi started");
+    if(WiFi.status() == WL_CONNECTED){
+        Stats::getInstance()->setWifiStatus(true);
+        Timestamp t = Clock::getInstance()->getTime();
+        Stats::getInstance()->setLastConnection(t);
+        Logs::getInstance()->addLog("WiFi started");
+    }
 }
 
+/*
 void Wlan::endWifi() {
     if(wifiHandler != NULL) {
-        vTaskDelete(wifiHandler);
-        wifiHandler = NULL;
+        endTask = true;
     }
     Logs::getInstance()->addLog("Wifi ending");
     Stats::getInstance()->setWifiStatus(false);
     server.close();
     WiFi.softAPdisconnect(true);
     active = false;
+}*/
+
+void Wlan::endWifi() {
+    if(wifiHandler != NULL) { 
+        Logs::getInstance()->addLog("Wifi stop requested"); 
+        stopTask = true; 
+    }
 }
 
 void Wlan::wifiTaskWrapper(void* param) {
@@ -218,14 +225,27 @@ void Wlan::wifiTaskWrapper(void* param) {
         ttl -= (now - last);
         last = now;
 
-        if (ttl <= 0) {
-            delete data; 
-            self->endWifi();
-            //vTaskDelete(NULL);
+        if (ttl <= 0 || self->stopTask) {
+            if (ttl <= 0) {
+                Logs::getInstance()->addLog("Wifi TTL expired");
+            }
+            break;
         }
-
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
+    
+    Logs::getInstance()->addLog("Wifi task shutting down...");
+    
+    Stats::getInstance()->setWifiStatus(false);
+    self->server.close();
+    WiFi.softAPdisconnect(true);
+    self->active = false;
+    self->wifiHandler = NULL;
+    sessionTokens.clear();
+    
+    delete data;
+
+    vTaskDelete(NULL); 
 }
 
 
@@ -258,11 +278,11 @@ void Wlan::handleRoot() {
 }
 
 void Wlan::handleDev() {
-    // Serial.println("===== HEADER DUMP =====");
-    // for (int i = 0; i < server.headers(); i++) {
-    //     Serial.println(server.headerName(i) + " = " + server.header(i));
-    // }
-    // Serial.println("========================");
+    Serial.println("===== HEADER DUMP =====");
+    for (int i = 0; i < server.headers(); i++) {
+        Serial.println(server.headerName(i) + " = " + server.header(i));
+    }
+    Serial.println("========================");
 
     String cookie = server.header("Cookie");
 

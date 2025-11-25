@@ -11,6 +11,7 @@ private:
     int gmtOffset;
     int daylightOffset;
     String path;
+    bool started = false;
 
 
     Clock() : autoTime(true), gmtOffset(3600), daylightOffset(3600), path("pool.ntp.org"){};
@@ -30,6 +31,7 @@ public:
     void syncTimeNow();
     void setAutoTime(bool value);
     bool getAutoTime() const;
+    bool isStarted() const;
 
 
 };

@@ -17,6 +17,7 @@ private:
     String startSSID;
     String startPWD;
     bool active;
+    bool stopTask = false;
 
     // internal helpers
     void handleRoot();

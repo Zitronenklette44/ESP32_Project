@@ -8,7 +8,9 @@ Clock* Clock::instance = nullptr;
 void Clock::init(){
     if(autoTime && Stats::getInstance()->getWifiStatus()){
         configTime(gmtOffset, daylightOffset, path.c_str());
-    }
+        Logs::getInstance()->addLog("Connected Clock");
+        started = true;
+    } else Serial.println("Clock not in sync");
 }
 
 void Clock::setTime(Timestamp time){
@@ -19,11 +21,12 @@ void Clock::setTime(Timestamp time){
     t.tm_hour = time.hour;
     t.tm_min  = time.minute;
     t.tm_sec  = time.second;
-
+    
     time_t epoch = mktime(&t);
-
+    
     struct timeval now = { epoch, 0 };
     settimeofday(&now, nullptr);
+    started = true;
 }
 
 Timestamp Clock::getTime() const{
@@ -51,7 +54,8 @@ Timestamp Clock::getTime() const{
 void Clock::syncTimeNow(){
     if(autoTime && Stats::getInstance()->getWifiStatus()){
         configTime(gmtOffset, daylightOffset, path.c_str());
-    }
+        Logs::getInstance()->addLog("Connected Clock");
+    }else Serial.println("Clock not in sync");
 }
 
 void Clock::setAutoTime(bool value){
@@ -60,4 +64,10 @@ void Clock::setAutoTime(bool value){
 
 bool Clock::getAutoTime() const{
     return autoTime;
+}
+
+Clock::~Clock(){}
+
+bool Clock::isStarted() const{
+    return started;
 }

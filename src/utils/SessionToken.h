@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include <Logs.h>
 
 struct SessionToken {
     String token;
@@ -17,7 +18,7 @@ struct SessionToken {
         }
 
         if(isExpired()){
-            token = "EXPIRED";
+            token = "------------EXPIRED-----------";
             return token;
         }
 
@@ -30,11 +31,14 @@ struct SessionToken {
         }
 
         timestamp = millis();
+        Logs::getInstance()->addLog("generated New Token->" + token);
         return token;
     }
 
     String newToken() {
         token = "";
+        maxAge = 0.25 * 60 * 60 * 1000;
+        timestamp = 0;
         return getToken();
     }
 };
