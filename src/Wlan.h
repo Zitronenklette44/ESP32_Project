@@ -34,7 +34,7 @@ public:
     ~Wlan();
 
     void init();
-    void startWifi();
+    void startWifi(long ttlMs);
     void endWifi();
 
     bool hasChangedValues() const;

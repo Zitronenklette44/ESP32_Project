@@ -17,4 +17,11 @@ struct Timestamp {
                 hour, minute,second);
         return String(buffer);
     }
+
+    String trimTime() const{
+        char buffer[15];
+        sprintf(buffer, "%02u:%02u:%02u",
+                hour, minute,second);
+        return String(buffer);
+    }
 };

@@ -8,6 +8,8 @@
 #include <Display.h>
 #include "Wlan.h"
 #include "Stats.h"
+#include "Clock.h"
+#include "Logs.h"
 
 using namespace fs;
 
@@ -19,7 +21,6 @@ using namespace fs;
 #define LOGSIZE 50
 
 std::vector<String> values;
-String logs[LOGSIZE];
 
 // classes
 Display displayM;
@@ -32,23 +33,22 @@ TaskHandle_t buttonHandler = NULL;
 void buttonCheck(void *parameter);
 void setupValues();
 
-void addLog(String s); 
-
 void setup(){
-	addLog("Started controller");
+	Logs::getInstance()->addLog("Started controller");
 	Serial.begin(115200);
     setupValues();
 
 	if(!LittleFS.begin(true)){
-      Serial.println("An error has occurred while mounting LittleFS");
-	  addLog("Error while mounting LittleFS");
-      return;
+        Serial.println("An error has occurred while mounting LittleFS");
+	    Logs::getInstance()->addLog("Error while mounting LittleFS");
+        return;
   	}
 
 	LittleFS.mkdir("/images");
 
     displayM.init();
     wlan.init();
+    Clock::getInstance()->init();
 
 	pinMode(ButtonTop, INPUT_PULLUP);
 	pinMode(ButtonBottom, INPUT_PULLUP);
@@ -60,8 +60,11 @@ bool trueSetup = false;
 void loop(){
 	if(!trueSetup){
 		// Button Thread
-		addLog("started Button tracking");
+		Logs::getInstance()->addLog("started Button tracking");
 		xTaskCreatePinnedToCore(buttonCheck, "Buttons", 4096, NULL, 1, &buttonHandler, 1);
+
+        // wlan.startWifi(5000);
+        // Clock::getInstance()->syncTimeNow();
 
 		trueSetup = true;
 	}
@@ -86,7 +89,7 @@ void buttonCheck(void *parameter){
         if(topPressed != wasTopPressed && now - lastTopChange > debounceDelay){
             lastTopChange = now;
             if(topPressed && !wlan.isActive()){
-                wlan.startWifi();
+                wlan.startWifi(15*60*1000);
             }
             wasTopPressed = topPressed;
         }
@@ -105,30 +108,6 @@ void buttonCheck(void *parameter){
     }
 }
 
-int currentLocation = 0;
-void addLog(String s){
-	if(currentLocation < LOGSIZE){
-		logs[currentLocation] = s;
-		currentLocation++;
-	}else{
-		for(int i = 0; i < LOGSIZE - 1; i++){
-			logs[i] = logs[i + 1];
-		}
-		logs[LOGSIZE - 1] = s;
-	}
-}
-
-void clearUploadFolder() {
-    File dir = LittleFS.open("/images");
-    File file = dir.openNextFile();
-
-    while (file) {
-        String path = file.name();
-        Serial.println("Deleting: " + path);
-        LittleFS.remove(path);
-        file = dir.openNextFile();
-    }
-}
 
 void setupValues(){
     values.push_back("ESP_Test");     // SSID
@@ -140,3 +119,8 @@ void setupValues(){
     values.push_back("checked");             // display_weather
     values.push_back("checked");             // display_date
 }
+
+
+
+
+

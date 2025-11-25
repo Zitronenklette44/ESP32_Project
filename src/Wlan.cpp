@@ -9,6 +9,12 @@ String username = "admin";
 String userPSW = "";
 vector<SessionToken> sessionTokens;
 
+struct WifiTaskData {
+    Wlan* self;
+    long ttlMs;
+};
+
+
 Wlan::Wlan(vector<String>& vals) : server(80), values(vals), wifiHandler(NULL), changedValues(false), startSSID(""), startPWD(""), active(false){
     instance = this; 
 }
@@ -33,7 +39,7 @@ void Wlan::init() {
     values[1] = "123456789";
 }
 
-void Wlan::startWifi() {
+void Wlan::startWifi( long ttlMs) {
     if(!values[0].equals("ESP_Test") && !values[1].equals("123456789")){
         // connect to existing WiFi
         WiFi.mode(WIFI_STA);
@@ -167,9 +173,14 @@ void Wlan::startWifi() {
     server.begin();
     active = true;
 
-    // start task on Core 1
-    xTaskCreatePinnedToCore(wifiTaskWrapper, "wifi", 4096, this, 1, &wifiHandler, 1);
+    WifiTaskData* data = new WifiTaskData();
+    data->self = this;
+    data->ttlMs = ttlMs; 
 
+    // start task on Core 1
+    xTaskCreatePinnedToCore(wifiTaskWrapper, "wifi", 4096, data, 1, &wifiHandler, 1);
+
+    Stats::getInstance()->setWifiStatus(true);
     Timestamp t;
     t.second = 10;
     t.minute = 15;
@@ -186,26 +197,37 @@ void Wlan::endWifi() {
         vTaskDelete(wifiHandler);
         wifiHandler = NULL;
     }
+    Logs::getInstance()->addLog("Wifi ending");
+    Stats::getInstance()->setWifiStatus(false);
     server.close();
     WiFi.softAPdisconnect(true);
     active = false;
-    Logs::getInstance()->addLog("Wifi ending");
 }
 
-void Wlan::wifiTaskWrapper(void* param){
-    Wlan* self = (Wlan*)param;
-    bool print = false;
-	while(1){
-		if(!print){
-			Serial.println("Access Point started!");
-			Serial.print("IP Address: ");
-			Serial.println(WiFi.softAPIP());
-			print = true;
-		}
-		self->server.handleClient();
-		vTaskDelay(10 / portTICK_PERIOD_MS);
-	}
+void Wlan::wifiTaskWrapper(void* param) {
+    WifiTaskData* data = (WifiTaskData*)param;
+    Wlan* self = data->self;
+    long ttl = data->ttlMs;
+
+    unsigned long last = millis();
+
+    while (1) {
+        self->server.handleClient();
+
+        unsigned long now = millis();
+        ttl -= (now - last);
+        last = now;
+
+        if (ttl <= 0) {
+            delete data; 
+            self->endWifi();
+            //vTaskDelete(NULL);
+        }
+
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
 }
+
 
 void Wlan::handleRoot() {
     File file = LittleFS.open("/index.html", "r");
