@@ -5,7 +5,14 @@ Logs* Logs::instance = nullptr;
 
 Logs::~Logs(){} 
 
-void Logs::addLog(String entry){
+void Logs::addLog(String entry, bool newLine){
+    if(!newLine){
+        if(!logEntrys.empty()){
+            logEntrys.back() += entry; 
+            Serial.println("LOG-> " + logEntrys.back());
+        }
+    return;
+    }
     String time = "[";
     if(Clock::getInstance()->isStarted()) time +=  Clock::getInstance()->getTime().trimTime();
     else time += "NOT_STARTED";
@@ -13,9 +20,13 @@ void Logs::addLog(String entry){
 
     logEntrys.push_back(time + entry);
     if(logEntrys.size() > maxLogsize){
-        logEntrys.erase(logEntrys.begin());
+        logEntrys.pop_front();
     }
     Serial.println("LOG-> " + time + entry);
+}
+
+void Logs::addLog(String entry){
+    addLog(entry, true);
 }
 
 void Logs::setMaxLogSize(int maxSize){

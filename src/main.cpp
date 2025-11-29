@@ -4,12 +4,12 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <LittleFS.h>
-#include <PNGdec.h>
 #include <Display.h>
 #include "Wlan.h"
 #include "Stats.h"
 #include "Clock.h"
 #include "Logs.h"
+#include "Weather.h"
 
 using namespace fs;
 
@@ -23,7 +23,7 @@ using namespace fs;
 std::vector<String> values;
 
 // classes
-Display displayM;
+Display display;
 Wlan wlan(values);
 
 //Threads
@@ -47,13 +47,15 @@ void setup(){
 
 	LittleFS.mkdir("/images");
 
-    displayM.init();
+    display.init();
     wlan.init();
     Clock::getInstance()->init();
 
 	pinMode(ButtonTop, INPUT_PULLUP);
 	pinMode(ButtonBottom, INPUT_PULLUP);
 	
+    display.print(30, 50, "Test");
+    display.print(50, 50, "Test2");
 	// LittleFS.format();
 }
 
@@ -72,7 +74,8 @@ void loop(){
 	}
 
     Stats::getInstance()->update();
-
+    display.update();
+    delay(100);
 }
 
 void buttonCheck(void *parameter){
@@ -130,6 +133,7 @@ void onWlanConnection(){
     if(Stats::getInstance()->getWifiStatus()){
         Logs::getInstance()->addLog("Started Doing Stuff with Wlan");
         Clock::getInstance()->syncTimeNow();
+        Weather::getInstance()->refreshData();
     }
 }
 

@@ -1,17 +1,18 @@
 #pragma once
 #include <Arduino.h>
 #include <vector>
-using std::vector;
+#include <deque>
+using std::deque;
 
 class Logs{
 private:
     int maxLogsize;
-    vector<String> logEntrys;
+    deque<String> logEntrys;
 
 
     static Logs* instance;
 
-    Logs() : maxLogsize(50){};
+    Logs() : maxLogsize(100){};
 public:
     ~Logs();
     static Logs* getInstance(){
@@ -22,6 +23,7 @@ public:
     }
 
     void addLog(String entry);
+    void addLog(String entry, bool newLine);
     void setMaxLogSize(int maxSize);
     String getLogs();
     int getMaxLogSize();

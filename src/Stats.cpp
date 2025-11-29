@@ -51,12 +51,7 @@ void Stats::setLastApiCall(Timestamp value){
 
 void Stats::update(){
     unsigned long now = millis();
-
     // uptime
     uptime += now - lastUpdate;
     lastUpdate = now;
-
-
-
-
 }

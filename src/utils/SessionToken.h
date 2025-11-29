@@ -13,32 +13,17 @@ struct SessionToken {
     }
 
     String getToken() {
-        if (!token.isEmpty()) {
-            return token; // still valid
-        }
-
-        if(isExpired()){
-            token = "------------EXPIRED-----------";
-            return token;
-        }
-
-        // generate new token
-        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_";
-        token = "";
-
-        for (int i = 0; i < length; i++) {
-            token += chars.charAt(random(chars.length()));
-        }
-
-        timestamp = millis();
-        Logs::getInstance()->addLog("generated New Token->" + token);
         return token;
     }
 
     String newToken() {
+        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_";
         token = "";
-        maxAge = 0.25 * 60 * 60 * 1000;
-        timestamp = 0;
-        return getToken();
+        for (int i = 0; i < length; i++) {
+            token += chars.charAt(random(chars.length()));
+        }
+        timestamp = millis();
+        Logs::getInstance()->addLog("generated New Token->" + token);
+        return token;
     }
 };

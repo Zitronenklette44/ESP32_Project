@@ -16,7 +16,7 @@ struct WifiTaskData {
 };
 
 
-Wlan::Wlan(vector<String>& vals) : server(80), values(vals), wifiHandler(NULL), changedValues(false), startSSID(""), startPWD(""), active(false){
+Wlan::Wlan(vector<String>& vals) : server(80), values(vals), wifiHandler(NULL), changedValues(false), startSSID(""), startPWD(""), active(false), ttl(0){
     instance = this; 
 }
 
@@ -40,33 +40,40 @@ void Wlan::init() {
     values[1] = "123456789";
 }
 
-void Wlan::startWifi( long ttlMs) {
-    if(!values[0].equals("ESP_Test") && !values[1].equals("123456789")){
-        // connect to existing WiFi
+int retrys = 0;
+int maxRetrys = 3;
+bool Wlan::startWifi(long ttlMs) {
+    bool returnValue = false;
+    retrys = 0; 
+
+    while(retrys <= maxRetrys) {
         WiFi.mode(WIFI_STA);
         WiFi.begin(values[0].c_str(), values[1].c_str());
-        Serial.print("Connecting to WiFi");
+        Logs::getInstance()->addLog("Connecting to WiFi");
+
         int timeout = 0;
-        while (WiFi.status() != WL_CONNECTED && timeout < 20) { // 10s timeout
+        while (WiFi.status() != WL_CONNECTED && timeout < 20) {
             delay(500);
-            Serial.print(".");
+            Logs::getInstance()->addLog(".", false);
             timeout++;
         }
+
         if(WiFi.status() == WL_CONNECTED){
-            Serial.println();
-            Serial.println("Connected to WiFi!");
-            Serial.print("IP: ");
-            Serial.println(WiFi.localIP());
-        } else {
-            Serial.println();
-            Serial.println("Failed to connect to WiFi, starting AP...");
-            WiFi.mode(WIFI_AP);
-            WiFi.softAP("ESP_Test", "123456789");
+            Logs::getInstance()->addLog("Connected to WiFi!");
+            Stats::getInstance()->setWifiStatus(true);
+            Stats::getInstance()->setLastConnection(Clock::getInstance()->getTime());
+            returnValue = true;
+            break;
         }
-    } else {
-        // default AP
+
+        retrys++;
+        Logs::getInstance()->addLog("Retry failed...");
+    }
+
+    if(!returnValue){
+        Logs::getInstance()->addLog("Failed to connect to WiFi, starting AP...");
         WiFi.mode(WIFI_AP);
-        WiFi.softAP(values[0], values[1]);
+        WiFi.softAP("ESP_Test", "123456789");
     }
 
     if (!MDNS.begin("esp32")) {  // hostname: esp32.local
@@ -101,9 +108,10 @@ void Wlan::startWifi( long ttlMs) {
         token.newToken();
         sessionTokens.push_back(token);
         
-        instance->server.sendHeader("Set-Cookie", "session=" + token.getToken() + "; Path=/; Max-Age=3600");
+        instance->server.sendHeader("Set-Cookie", "session=" + token.getToken() + "; Path=/; Max-Age=600");
         instance->server.sendHeader("Location", "/login.html");
         instance->server.send(302, "text/plain", "");
+        
     });
     
     server.on("/dev.html", [](){ instance->handleDev(); });
@@ -154,12 +162,8 @@ void Wlan::startWifi( long ttlMs) {
                             + String(seconds) + "s";
 
         infos += "UPTIME=" + stringUptime + "; ";
-        String wifiState;
-        if (WiFi.status() == WL_CONNECTED) {
-            wifiState = "WIFISTATUS=true; IPADDRESS=" + WiFi.localIP().toString() + "; ";
-        } else {
-            wifiState = "WIFISTATUS=false; IPADDRESS=NULL; ";
-        }
+        String wifiState = "WIFISTATUS=TTl:"+  String(instance->ttl) + "; ";
+        String IP = "IPADDRESS=" + WiFi.localIP().toString() + "; ";
         infos += wifiState;
 
         infos += "LAST_CONNECTION=" + Stats::getInstance()->getLastConnection().toString() + "; ";
@@ -167,29 +171,32 @@ void Wlan::startWifi( long ttlMs) {
 
         instance->server.send(200, "text/plain", infos);
     });
-
-
+    
+    
     server.serveStatic("/style.css", LittleFS, "/style.css");
     server.serveStatic("/script.js", LittleFS, "/script.js");
-
+    
     //server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.begin();
     active = true;
     stopTask = false;
-
+    
+    ttl = ttlMs;
+    
     WifiTaskData* data = new WifiTaskData();
     data->self = this;
     data->ttlMs = ttlMs; 
-
+    
     // start task on Core 1
     xTaskCreatePinnedToCore(wifiTaskWrapper, "wifi", 4096, data, 1, &wifiHandler, 0);
-
+    
     if(WiFi.status() == WL_CONNECTED){
-        Stats::getInstance()->setWifiStatus(true);
-        Timestamp t = Clock::getInstance()->getTime();
-        Stats::getInstance()->setLastConnection(t);
+        // Stats::getInstance()->setWifiStatus(true);
+        // Timestamp t = Clock::getInstance()->getTime();
+        // Stats::getInstance()->setLastConnection(t);
         Logs::getInstance()->addLog("WiFi started");
     }
+    return returnValue;
 }
 
 /*
@@ -207,6 +214,7 @@ void Wlan::endWifi() {
 void Wlan::endWifi() {
     if(wifiHandler != NULL) { 
         Logs::getInstance()->addLog("Wifi stop requested"); 
+        retrys = 0;
         stopTask = true; 
     }
 }

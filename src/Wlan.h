@@ -18,6 +18,7 @@ private:
     String startPWD;
     bool active;
     bool stopTask = false;
+    long ttl;
 
     // internal helpers
     void handleRoot();
@@ -35,7 +36,7 @@ public:
     ~Wlan();
 
     void init();
-    void startWifi(long ttlMs);
+    bool startWifi(long ttlMs);
     void endWifi();
 
     bool hasChangedValues() const;
