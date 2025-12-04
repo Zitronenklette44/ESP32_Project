@@ -1,11 +1,13 @@
 #pragma once
 #include <Arduino.h>
+#include <utils/ConfigObserver.h>
+#include "ConfigManager.h"
 
 
-
-class Weather{
+class Weather : public ConfigObserver{
 private:
-    String api = "https://api.open-meteo.com/v1/forecast?latitude=48.2285&longitude=8.7923&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,precipitation,precipitation_probability&current=temperature_2m,precipitation&timezone=auto&forecast_days=3";
+    String api_daily;
+    String api_hourly;
     static Weather* instance;
 
     float temp;
@@ -14,23 +16,33 @@ private:
     float minTemp;
     float maxPrecipitation;
 
+    bool update = false;
+
     Weather();
 
 public:
     ~Weather();
 
+    void onConfigChange() override{
+        api_daily = ConfigManager::getInstance()->getApiDaily();
+        api_hourly = ConfigManager::getInstance()->getApiHourly();
+    }
+
     static Weather* getInstance(){
         if(!instance){
             instance = new Weather();
+            ConfigManager::getInstance()->addObserver(instance);
         }
         return instance;
     }
 
-    void refreshData();
+    void refreshData(bool hourly);
     float getTemperatur() const;
     float getPrecipitation() const;
     float getMaxTemperatur() const;
     float getMinTemperature() const;
     float getMaxPrecipitation() const;
+
+    bool hasUpdate();
 
 };

@@ -1,9 +1,10 @@
 #pragma once
 #include <Arduino.h>
 #include "utils/Timestamp.h"
+#include <utils/ConfigObserver.h>
+#include "ConfigManager.h"
 
-class Clock
-{
+class Clock : public ConfigObserver{
 private:
     
     static Clock* instance;
@@ -18,9 +19,14 @@ private:
 public:
     ~Clock();
 
+    void onConfigChange() override{
+        autoTime = ConfigManager::getInstance()->getAutoTime();
+    }
+
     static Clock* getInstance(){
         if(!instance){
             instance = new Clock();
+            ConfigManager::getInstance()->addObserver(instance);
         }
         return instance;
     }

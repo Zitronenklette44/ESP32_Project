@@ -20,24 +20,20 @@ using namespace fs;
 
 #define LOGSIZE 50
 
-std::vector<String> values;
-
 // classes
 Display display;
-Wlan wlan(values);
+Wlan wlan;
 
 //Threads
 TaskHandle_t buttonHandler = NULL;
 
 // Functions
 void buttonCheck(void *parameter);
-void setupValues();
-void onWlanConnection();
+void onWlanConnection(bool hourly);
 
 void setup(){
 	Logs::getInstance()->addLog("Started controller");
 	Serial.begin(115200);
-    setupValues();
 
 	if(!LittleFS.begin(true)){
         Serial.println("An error has occurred while mounting LittleFS");
@@ -47,35 +43,57 @@ void setup(){
 
 	LittleFS.mkdir("/images");
 
-    display.init();
+    ConfigManager::getInstance()->load();
+
     wlan.init();
     Clock::getInstance()->init();
+    display.init();
 
 	pinMode(ButtonTop, INPUT_PULLUP);
 	pinMode(ButtonBottom, INPUT_PULLUP);
 	
-    display.print(30, 50, "Test");
-    display.print(50, 50, "Test2");
 	// LittleFS.format();
 }
 
 bool trueSetup = false;
+int lastHour = -1;
 void loop(){
+    bool showWeather = false;
 	if(!trueSetup){
+        Weather::getInstance();
+        Clock::getInstance();
+        Stats::getInstance;
+        ConfigManager::getInstance()->updateObservers();
 		// Button Thread
 		Logs::getInstance()->addLog("started Button tracking");
 		xTaskCreatePinnedToCore(buttonCheck, "Buttons", 4096, NULL, 1, &buttonHandler, 1);
 
         wlan.startWifi(5000);
         Clock::getInstance()->init();
-
+        Weather::getInstance()->refreshData(false);
+        Weather::getInstance()->refreshData(true);
         Serial.println("Setup Done");
 		trueSetup = true;
 	}
 
     Stats::getInstance()->update();
-    display.update();
+    display.update(showWeather);
     delay(100);
+
+    if(showWeather){
+        
+    }
+
+
+    String hourStr = Clock::getInstance()->getTime().trimTime().substring(0, 2);
+    int currentHour = hourStr.toInt();
+
+    if (currentHour != lastHour) {
+        lastHour = currentHour;
+
+        wlan.startWifi(5000);
+        onWlanConnection(true);
+    }
 }
 
 void buttonCheck(void *parameter){
@@ -96,7 +114,7 @@ void buttonCheck(void *parameter){
             if(topPressed && !wlan.isActive()){
                 wlan.startWifi(15*60*1000);
                 Serial.println("Wlan pressed");
-                onWlanConnection();
+                onWlanConnection(true);
             }
             wasTopPressed = topPressed;
         }
@@ -115,25 +133,11 @@ void buttonCheck(void *parameter){
     }
 }
 
-
-void setupValues(){
-    values.push_back("ESP_Test");     // SSID
-    values.push_back("123456789");    // SSID_PWD
-    values.push_back("checked");     // autoTime checked = true
-    values.push_back("");             // time HH:mm 
-    values.push_back("");             // date YYYY-MM-dd
-    values.push_back("checked");             // display_time
-    values.push_back("checked");             // display_weather
-    values.push_back("checked");             // display_date
-}
-
-
-
-void onWlanConnection(){
+void onWlanConnection(bool hourly){
     if(Stats::getInstance()->getWifiStatus()){
         Logs::getInstance()->addLog("Started Doing Stuff with Wlan");
         Clock::getInstance()->syncTimeNow();
-        Weather::getInstance()->refreshData();
+        Weather::getInstance()->refreshData(hourly);
     }
 }
 

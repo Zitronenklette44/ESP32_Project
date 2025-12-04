@@ -5,15 +5,16 @@
 #include <LittleFS.h>
 #include <vector>
 #include <utils/SessionToken.h>
+#include <utils/ConfigObserver.h>
+#include "ConfigManager.h"
+
 using std::vector;
 
 
-class Wlan {
+class Wlan : public ConfigObserver{
 private:
     WebServer server;            // the webserver
-    vector<String>& values;      // reference to shared values
     TaskHandle_t wifiHandler;    // FreeRTOS task handle
-    bool changedValues;          // track if values changed
     String startSSID;
     String startPWD;
     bool active;
@@ -32,13 +33,17 @@ private:
     static void wifiTaskWrapper(void* param);
 
 public:
-    Wlan(vector<String>& values);
+    void onConfigChange() override{
+        startSSID = ConfigManager::getInstance()->getWifiSSID();
+        startPWD = ConfigManager::getInstance()->getWifiPassword();
+    }
+
+    Wlan();
     ~Wlan();
 
     void init();
     bool startWifi(long ttlMs);
     void endWifi();
 
-    bool hasChangedValues() const;
     bool isActive() const;
 };

@@ -11,13 +11,20 @@ Weather::Weather(): temp(0), precipitation(0), maxTemp(0), minTemp(0), maxPrecip
 
 Weather::~Weather(){}
 
-void Weather::refreshData(){
+void Weather::refreshData(bool hourly){
     if(Stats::getInstance()->getWifiStatus()){
+        // Serial.println("hourly->" + api_hourly);
+        // Serial.println("daily->" + api_daily);
         HTTPClient http;
-        http.begin(api);
+        if(hourly){
+            http.begin(api_hourly);
+        }else{
+            http.begin(api_daily);
+        }
 
         int code = http.GET();
         if(code == 200){
+            update = true;
             Stats::getInstance()->setLastApiCall(Clock::getInstance()->getTime());
             String body = http.getString();
             // Serial.println("========WeatherData==========");
@@ -28,11 +35,15 @@ void Weather::refreshData(){
             JsonDocument doc;
             deserializeJson(doc, body);
 
-            temp = doc["current"]["temperature_2m"];
-            precipitation = doc["current"]["precipitation"];
-            maxTemp = doc["daily"]["temperature_2m_max"];
-            minTemp = doc["daily"]["temperature_2m_min"];
-            maxPrecipitation = doc["daily"]["precipitation_probability_max"];
+            if(hourly){
+                temp = doc["current"]["temperature_2m"];
+                precipitation = doc["current"]["precipitation"];
+            }else{
+                maxTemp = doc["daily"]["temperature_2m_max"][0] | 0.0;
+                minTemp = doc["daily"]["temperature_2m_min"][0] | 0.0;
+                maxPrecipitation = doc["daily"]["precipitation_probability_max"][0] | 0.0;
+            }
+            
         }
     }
 }
@@ -55,4 +66,12 @@ float Weather::getMinTemperature() const{
 
 float Weather::getMaxPrecipitation() const{
     return maxPrecipitation;
+}
+
+bool Weather::hasUpdate() {
+    if(update){
+        update = false;
+        return true;
+    }
+    return update;
 }

@@ -24,4 +24,10 @@ struct Timestamp {
                 hour, minute,second);
         return String(buffer);
     }
+
+    String trimDate() const{
+        char buffer[15];
+        sprintf(buffer, "%02u.%02u.%04u", day, month, year);
+        return String(buffer);
+    }
 };

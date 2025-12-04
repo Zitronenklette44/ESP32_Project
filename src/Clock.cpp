@@ -6,14 +6,11 @@
 Clock* Clock::instance = nullptr;
 
 void Clock::init(){
-    if(autoTime && Stats::getInstance()->getWifiStatus()){
-        configTime(gmtOffset, daylightOffset, path.c_str());
-        Logs::getInstance()->addLog("Connected Clock");
-        started = true;
-    } else Serial.println("Clock not in sync");
+    syncTimeNow();
 }
 
 void Clock::setTime(Timestamp time){
+    // Serial.println("Time->" + time.toString());
     tm t = {};
     t.tm_year = time.year - 1900;
     t.tm_mon  = time.month - 1;
@@ -21,6 +18,8 @@ void Clock::setTime(Timestamp time){
     t.tm_hour = time.hour;
     t.tm_min  = time.minute;
     t.tm_sec  = time.second;
+
+    // Serial.println("newTime->" + String(t.tm_year) + "."+ String(t.tm_mon) + "."+ String(t.tm_mday) + " "+ String(t.tm_hour) + ":"+ String(t.tm_min) + ":"+ String(t.tm_sec));
     
     time_t epoch = mktime(&t);
     
@@ -55,15 +54,33 @@ void Clock::syncTimeNow(){
     if(autoTime && Stats::getInstance()->getWifiStatus()){
         configTime(gmtOffset, daylightOffset, path.c_str());
         Logs::getInstance()->addLog("Connected Clock");
-    }else Serial.println("Clock not in sync");
+        started = true;
+    }else {
+        if(!autoTime){
+            Timestamp t;
+            String time = ConfigManager::getInstance()->getTime();
+            t.hour = time.substring(0, 2).toInt();
+            t.minute = time.substring(3, 5).toInt();
+            t.second = 0;
+            
+            String date = ConfigManager::getInstance()->getDate();
+            t.year = date.substring(0, 4).toInt();
+            t.month = date.substring(5, 7).toInt();
+            t.day = date.substring(8, 10).toInt();
+            setTime(t);
+        }else{
+            Serial.println("Clock not in sync");
+            started = false;
+        }
+    }
 }
 
 void Clock::setAutoTime(bool value){
-    autoTime = value;   
+    ConfigManager::getInstance()->setAutoTime(value);   
 }
 
 bool Clock::getAutoTime() const{
-    return autoTime;
+    return ConfigManager::getInstance()->getAutoTime();
 }
 
 Clock::~Clock(){}
