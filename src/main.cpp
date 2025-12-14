@@ -30,6 +30,7 @@ TaskHandle_t buttonHandler = NULL;
 // Functions
 void buttonCheck(void *parameter);
 void onWlanConnection(bool hourly);
+void checkTimeout();
 
 void setup(){
 	Logs::getInstance()->addLog("Started controller");
@@ -62,7 +63,7 @@ void loop(){
 	if(!trueSetup){
         Weather::getInstance();
         Clock::getInstance();
-        Stats::getInstance;
+        Stats::getInstance();
         ConfigManager::getInstance()->updateObservers();
 		// Button Thread
 		Logs::getInstance()->addLog("started Button tracking");
@@ -72,28 +73,89 @@ void loop(){
         Clock::getInstance()->init();
         Weather::getInstance()->refreshData(false);
         Weather::getInstance()->refreshData(true);
+
+        String hourStr = Clock::getInstance()->getTime().trimTime().substring(0, 2);
+        lastHour = hourStr.toInt();
+
         Serial.println("Setup Done");
 		trueSetup = true;
-	}
-
-    Stats::getInstance()->update();
-    display.update(showWeather);
-    delay(100);
-
-    if(showWeather){
+	}else{
         
+        Stats::getInstance()->update();
+        display.update(showWeather);
+        delay(100);
+        
+        checkTimeout();
+
+        String hourStr = Clock::getInstance()->getTime().trimTime().substring(0, 2);
+        int currentHour = hourStr.toInt();
+        
+        if (currentHour != lastHour) {
+            lastHour = currentHour;
+            
+            wlan.startWifi(5000);
+            if(currentHour == 0){
+                onWlanConnection(false);
+            }else{
+                onWlanConnection(true);
+            }
+        }
+    }
+    
+}
+
+bool display1off = false;
+bool display2off = false;
+void checkTimeout(){
+    String time = Clock::getInstance()->getTime().trimTime();
+    bool timeout1Valid = false;
+    bool timeout2Valid = false;
+
+    String timeout1start = ConfigManager::getInstance()->getTimeoutStart(1) + ":00";
+    String timeout2start = ConfigManager::getInstance()->getTimeoutStart(2)+ ":00";
+    String timeout1end = ConfigManager::getInstance()->getTimeoutEnd(1)+ ":00";
+    String timeout2end = ConfigManager::getInstance()->getTimeoutEnd(2)+ ":00";
+
+    timeout1Valid = !timeout1start.equals(timeout1end);
+    timeout2Valid = !timeout2start.equals(timeout2end);
+
+    // Serial.println("Timeout 1:" + timeout1start + " - " + timeout1end + " valid?->" + timeout1Valid);
+    // Serial.println("Timeout 2:" + timeout2start + " - " + timeout2end + " valid?->" + timeout2Valid);
+    // Serial.println("Time:" + time);
+    bool change = false;
+
+    if(timeout1Valid){
+        if(time.equals(timeout1start)){
+            Logs::getInstance()->addLog("timout 1 sleep");
+            display1off = true;
+            change = true;
+        }else if(time.equals(timeout1end)){
+            Logs::getInstance()->addLog("timeout 1 wakeup");
+            display1off = false;
+            change = true;
+        }
+    }
+    if(timeout2Valid){
+        if(time.equals(timeout2start)){
+            Logs::getInstance()->addLog("timout 2 sleep");
+            display2off = true;
+            change = true;
+        }else if(time.equals(timeout2end)){
+            Logs::getInstance()->addLog("timeout 2 wakeup");
+            display2off = false;
+            change = true;
+        }
+    }
+
+    if(!change) return;
+
+    if(!display1off && !display2off){
+        display.displayOn();
+    }else if(display1off || display2off){
+        display.displayOff();
     }
 
 
-    String hourStr = Clock::getInstance()->getTime().trimTime().substring(0, 2);
-    int currentHour = hourStr.toInt();
-
-    if (currentHour != lastHour) {
-        lastHour = currentHour;
-
-        wlan.startWifi(5000);
-        onWlanConnection(true);
-    }
 }
 
 void buttonCheck(void *parameter){
@@ -136,7 +198,7 @@ void buttonCheck(void *parameter){
 void onWlanConnection(bool hourly){
     if(Stats::getInstance()->getWifiStatus()){
         Logs::getInstance()->addLog("Started Doing Stuff with Wlan");
-        Clock::getInstance()->syncTimeNow();
+        if(ConfigManager::getInstance()->getAutoTime()) Clock::getInstance()->syncTimeNow();
         Weather::getInstance()->refreshData(hourly);
     }
 }

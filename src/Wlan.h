@@ -20,6 +20,12 @@ private:
     bool active;
     bool stopTask = false;
     long ttl;
+    long currentTtlMs = 0; 
+
+    String username = "admin";
+    String userPSW = "";
+    String adminName = "admin";
+    String adminPSW = "";
 
     // internal helpers
     void handleRoot();
@@ -36,6 +42,10 @@ public:
     void onConfigChange() override{
         startSSID = ConfigManager::getInstance()->getWifiSSID();
         startPWD = ConfigManager::getInstance()->getWifiPassword();
+        username = ConfigManager::getInstance()->getUserName();
+        userPSW = ConfigManager::getInstance()->getUserPassword();
+        adminName = ConfigManager::getInstance()->getAdminOverrideName();
+        adminPSW = ConfigManager::getInstance()->getAdminOverridePassword();
     }
 
     Wlan();

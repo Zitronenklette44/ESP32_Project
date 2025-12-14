@@ -24,6 +24,13 @@ struct TimeConfig {
     String date;
 };
 
+struct Timeout {
+    String t1start;
+    String t1end;
+    String t2start;
+    String t2end;
+};
+
 struct DisplayConfig {
     bool showTime;
     bool showWeather;
@@ -52,6 +59,7 @@ private:
     TimeConfig time;
     DisplayConfig display;
     LoginConfig login;
+    Timeout timeout;
 public:
     static ConfigManager* getInstance(){
         if(!instance){
@@ -69,40 +77,47 @@ public:
     // ---- API GET / SET ----
     String getApiDaily() const;
     String getApiHourly() const;
-    void setApiDaily(const String& v);
-    void setApiHourly(const String& v);
+    void setApiDaily(const String& v, bool end = true);
+    void setApiHourly(const String& v, bool end = true);
 
     // ---- WIFI GET / SET ----
     String getWifiSSID() const;
     String getWifiPassword() const;
-    void setWifiSSID(const String& v);
-    void setWifiPassword(const String& v);
+    void setWifiSSID(const String& v, bool end = true);
+    void setWifiPassword(const String& v, bool end = true);
 
     // ---- TIME GET / SET ----
     bool getAutoTime() const;
     String getTime() const;
     String getDate() const;
-    void setAutoTime(bool v);
-    void setTime(const String& v);
-    void setDate(const String& v);
-
+    void setAutoTime(bool v, bool end = true);
+    void setTime(const String& v, bool end = true);
+    void setDate(const String& v, bool end = true);
+    
     // ---- DISPLAY GET / SET ----
     bool getShowTime() const;
     bool getShowWeather() const;
     bool getShowDate() const;
-    void setShowTime(bool v);
-    void setShowWeather(bool v);
-    void setShowDate(bool v);
-
+    void setShowTime(bool v, bool end = true);
+    void setShowWeather(bool v, bool end = true);
+    void setShowDate(bool v, bool end = true);
+    
     // ---- LOGIN GET / SET ----
     String getUserName() const;
     String getUserPassword() const;
     String getAdminOverrideName() const;
     String getAdminOverridePassword() const;
+    
+    void setUserName(const String& v, bool end = true);
+    void setUserPassword(const String& v, bool end = true);
+    void setAdminOverrideName(const String& v, bool end = true);
+    void setAdminOverridePassword(const String& v, bool end = true);
 
-    void setUserName(const String& v);
-    void setUserPassword(const String& v);
-    void setAdminOverrideName(const String& v);
-    void setAdminOverridePassword(const String& v);
-
+    // ---- Timeout GET / SET ----
+    String getTimeoutStart(int id) const;
+    String getTimeoutEnd(int id) const;
+    
+    void setTimeoutStart(const String& v, int id, bool end = true);
+    void setTimeoutEnd(const String& v, int id, bool end = true);
+    
 };

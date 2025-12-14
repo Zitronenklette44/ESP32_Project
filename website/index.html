@@ -51,44 +51,26 @@
             </fieldset>
 
             <fieldset>
-                <legend>Bilder:</legend>
-                <p class="warning">Alle Bilder müssen eine Größe von 135 × 240 Pixeln haben</p>
-                <table>
+                <legend>Ruhezeiten:</legend>
+                <table> 
                     <tr>
-                        <td>Frühling:</td>
-                        <td>
-                            <label class="file-upload">
-                                <span>Datei Hochladen</span>
-                                <input type="file" name="fruehling" accept=".png, .jpg, .jpeg">
-                            </label>
-                        </td>
+                        <td>Start:</td>
+                        <td><input type="time" id="timeout1start" name="timeout1start" value="{TIMEOUT1START}"></td>
                     </tr>
                     <tr>
-                        <td>Sommer:</td>
-                        <td>
-                            <label class="file-upload">
-                                <span>Datei Hochladen</span>
-                                <input type="file" name="sommer" accept=".png, .jpg, .jpeg">
-                            </label>
-                        </td>
+                        <td>Ende:</td>
+                        <td><input type="time" id="timeout1end" name="timeout1end" value="{TIMEOUT1END}"></td>
+                    </tr>
+                    <tr><td></td></tr>
+                    <tr><td></td></tr>
+                    <tr><td></td></tr>
+                    <tr>
+                        <td>Start:</td>
+                        <td><input type="time" id="timeout2start" name="timeout2start" value="{TIMEOUT2START}"></td>
                     </tr>
                     <tr>
-                        <td>Herbst:</td>
-                        <td>
-                            <label class="file-upload">
-                                <span>Datei Hochladen</span>
-                                <input type="file" name="herbst" accept=".png, .jpg, .jpeg">
-                            </label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Winter:</td>
-                        <td>
-                            <label class="file-upload">
-                                <span>Datei Hochladen</span>
-                                <input type="file" name="winter" accept=".png, .jpg, .jpeg">
-                            </label>
-                        </td>
+                        <td>Ende:</td>
+                        <td><input type="time" id="timeout2end" name="timeout2end" value="{TIMEOUT2END}"></td>
                     </tr>
                 </table>
             </fieldset>

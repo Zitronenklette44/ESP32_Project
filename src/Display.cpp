@@ -71,6 +71,7 @@ void Display::setTextColor(uint32_t fg, uint32_t bg){
 String oldDate = "";
 String oldTime = "";
 bool oldWifi = false;
+bool oldPrecipitation = false;
 int updateCounter = 0;
 void Display::update(bool showWeather){
     if (showWeather){
@@ -139,9 +140,9 @@ void Display::update(bool showWeather){
             tft.drawString(String(minTemp), 65, 115);
         }
 
-        if(true){
-            bool percipitation = Weather::getInstance()->getPrecipitation() != 0;
-            if(percipitation){
+        bool precipitation = Weather::getInstance()->getPrecipitation() != 0;
+        if(oldPrecipitation != precipitation){
+            if(precipitation){
                 tft.fillRect(150, 110, 30, 20, TFT_BLACK);
                 drawIcon(5, 150, 110, gray);
             }else{
@@ -152,7 +153,7 @@ void Display::update(bool showWeather){
 
     }
 
-    if(updateCounter == 1000) updateCounter = 0;
+    if(updateCounter >= 1000) updateCounter = 0;
     else updateCounter++;
 }
 
@@ -304,6 +305,9 @@ void Display::drawIcon(int id, int x, int y, uint16_t color){
 }
 
 void Display::restartDisplay(){
+    oldDate = "";
+    oldTime = "";
+    oldWifi = false;
     init();
 }
 

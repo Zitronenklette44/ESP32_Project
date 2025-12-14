@@ -6,10 +6,6 @@
 
 static Wlan* instance = nullptr;
 
-String username = "admin";
-String userPSW = "";
-String adminName = "admin";
-String adminPSW = "";
 vector<SessionToken> sessionTokens;
 
 struct WifiTaskData {
@@ -47,6 +43,14 @@ int retrys = 0;
 int maxRetrys = 2;
 int maxTimeout = 5;
 bool Wlan::startWifi(long ttlMs) {
+    // if(WiFi.status() == WL_CONNECTED){ 
+    //     Serial.print("[ERROR] WLAN already started");
+    //     return false;
+    // }
+    if(Stats::getInstance()->getWifiStatus()){
+        Logs::getInstance()->addLog("[WARNING] Wlan already started");
+        return false;
+    }
     bool returnValue = false;
     retrys = 0; 
 
@@ -80,11 +84,11 @@ bool Wlan::startWifi(long ttlMs) {
         WiFi.softAP("ESP_Test", "123456789");
     }
 
-    if (!MDNS.begin("esp32")) {  // hostname: esp32.local
-        Serial.println("Error setting up MDNS");
-    } else {
-        Serial.println("MDNS responder started: http://esp32.local");
-    }
+    // if (!MDNS.begin("esp32")) {  // hostname: esp32.local
+    //     Serial.println("Error setting up MDNS");
+    // } else {
+    //     Serial.println("MDNS responder started: http://esp32.local");
+    // }
 
     const char* headersToCollect[] = {"Cookie", "Host", "User-Agent", "Accept"};
     
@@ -101,9 +105,9 @@ bool Wlan::startWifi(long ttlMs) {
         String recievedUserName = instance->server.arg("userName");
         String recievedUserPsw = instance->server.arg("userPSW");
 
-        Logs::getInstance()->addLog("Login attempt-> recUser:" + recievedUserName + " recPwd:"+ recievedUserPsw + " corrUser:" + username + " corrPwd:" + userPSW);
+        // Logs::getInstance()->addLog("Login attempt-> recUser:" + recievedUserName + " recPwd:"+ recievedUserPsw + " corrUser:" + instance->username + " corrPwd:" + instance->userPSW);
 
-        if(!(recievedUserName.equals(username) || recievedUserName.equals(adminName)) || !(recievedUserPsw.equals(userPSW) || recievedUserPsw.equals(adminPSW))){
+        if(!(recievedUserName.equals(instance->username) || recievedUserName.equals(instance->adminName)) || !(recievedUserPsw.equals(instance->userPSW) || recievedUserPsw.equals(instance->adminPSW))){
             instance->server.send(404, "text/plain", "Invalid Login info!");
             return;
         }
@@ -127,6 +131,8 @@ bool Wlan::startWifi(long ttlMs) {
         ConfigManager::getInstance()->setUserPassword(recievedUserPsw);
 
         Serial.print("new Credentials: " + recievedUserName + recievedUserPsw);
+
+        ConfigManager::getInstance()->save();
 
         sessionTokens.clear();
         
@@ -166,7 +172,14 @@ bool Wlan::startWifi(long ttlMs) {
                             + String(seconds) + "s";
 
         infos += "UPTIME=" + stringUptime + "; ";
-        String wifiState = "WIFISTATUS=TTl:"+  String(instance->ttl) + "; ";
+
+        char buffer[16];
+        unsigned long ms = instance->currentTtlMs;
+        unsigned int min = ms / 60000;
+        unsigned int s = (ms % 60000) / 1000;
+        sprintf(buffer, "TTL: %02u:%02u", min, s);
+
+        String wifiState = "WIFISTATUS="+  String(buffer) + "; ";
         String IP = "IPADDRESS=" + WiFi.localIP().toString() + "; ";
         infos += wifiState;
         infos += IP;
@@ -216,6 +229,7 @@ void Wlan::endWifi() {
 void Wlan::wifiTaskWrapper(void* param) {
     WifiTaskData* data = (WifiTaskData*)param;
     Wlan* self = data->self;
+    self->currentTtlMs = data->ttlMs;
     long ttl = data->ttlMs;
 
     unsigned long last = millis();
@@ -226,11 +240,13 @@ void Wlan::wifiTaskWrapper(void* param) {
         unsigned long now = millis();
         ttl -= (now - last);
         last = now;
+        self->currentTtlMs = ttl;
 
         if (ttl <= 0 || self->stopTask) {
             if (ttl <= 0) {
                 Logs::getInstance()->addLog("Wifi TTL expired");
             }
+            // self->server.stop();
             break;
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -245,6 +261,7 @@ void Wlan::wifiTaskWrapper(void* param) {
     self->wifiHandler = NULL;
     sessionTokens.clear();
     
+    data->self = nullptr;
     delete data;
 
     vTaskDelete(NULL); 
@@ -273,10 +290,17 @@ void Wlan::handleRoot() {
     html.replace("{DISPLAY_OPTIONS_TIME}", ConfigManager::getInstance()->getShowTime() ? "checked" : "");
     html.replace("{DISPLAY_OPTIONS_WEATHER}", ConfigManager::getInstance()->getShowWeather() ? "checked" : "");
     html.replace("{DISPLAY_OPTIONS_DATE}", ConfigManager::getInstance()->getShowDate() ? "checked" : "");
+    
+    html.replace("{TIMEOUT1START}", ConfigManager::getInstance()->getTimeoutStart(1));
+    html.replace("{TIMEOUT1END}", ConfigManager::getInstance()->getTimeoutEnd(1));
+    html.replace("{TIMEOUT2START}", ConfigManager::getInstance()->getTimeoutStart(2));
+    html.replace("{TIMEOUT2END}", ConfigManager::getInstance()->getTimeoutEnd(2));
+    yield();
 
     //server.streamFile(file, "text/html");
     file.close();
     server.send(200, "text/html", html);
+    yield();
 }
 
 void Wlan::handleDev() {
@@ -310,9 +334,10 @@ void Wlan::handleDev() {
     
     html.replace("{USERNAME}", username);
     html.replace("{USERPSW}", userPSW);
+    yield();
     
     server.send(200, "text/html", html);
-
+    yield();
 
 }
 
@@ -351,28 +376,30 @@ void Wlan::handleSubmit() {
 	String ssid = server.arg("ssid");
 	String pass = server.arg("ssidPwd");
     if(!ssid.isEmpty() && !pass.isEmpty()){
-        ConfigManager::getInstance()->setWifiSSID(ssid);
-        ConfigManager::getInstance()->setWifiPassword(pass);
+        ConfigManager::getInstance()->setWifiSSID(ssid, false);
+        ConfigManager::getInstance()->setWifiPassword(pass, false);
     }
 	
 	bool autoTime = server.hasArg("autoTime");
-    ConfigManager::getInstance()->setAutoTime(autoTime);
+    ConfigManager::getInstance()->setAutoTime(autoTime, false);
+    Serial.print("autoTime-> " + String(autoTime));
 	if(!autoTime){
-		String timeString = server.arg("time");
-		int hour = timeString.substring(0,2).toInt(); 
-		int min = timeString.substring(3,5).toInt(); 
-        ConfigManager::getInstance()->setTime(timeString);
+        String timeString = server.arg("time");
+        ConfigManager::getInstance()->setTime(timeString, false);
+        Serial.print("time-> " + timeString);
 		
 		String dateString = server.arg("date");
-		int year = dateString.substring(0,4).toInt();
-		int month = dateString.substring(5,7).toInt();
-		int day = dateString.substring(8,10).toInt();
-        ConfigManager::getInstance()->setDate(dateString);
+        ConfigManager::getInstance()->setDate(dateString, false);
+        Serial.print("date-> " + dateString);
 	}
 	
 	Serial.println("Received WiFi credentials:");
 	Serial.println(ssid);
-	Serial.println(pass);
+	Serial.println(pass + "\n");
+
+    ConfigManager::getInstance()->updateObservers();
+    ConfigManager::getInstance()->save();
+    yield();
 }
 
 void Wlan::handleFileUpload() {

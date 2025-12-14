@@ -48,7 +48,12 @@ bool ConfigManager::load() {
     login.userName = doc["login"]["userName"] | "";
     login.userPassword = doc["login"]["userPassword"] | "";
     login.adminOverrideName = doc["login"]["adminOverrideName"] | "";
-    login.adminOverridePassword= doc["login"]["adminOverridePassword"] | "";
+    login.adminOverridePassword = doc["login"]["adminOverridePassword"] | "";
+
+    timeout.t1start = doc["timeout"]["t1start"] | "";
+    timeout.t1end = doc["timeout"]["t1end"] | "";
+    timeout.t2start = doc["timeout"]["t2start"] | "";
+    timeout.t2end = doc["timeout"]["t2end"] | "";
 
     updateObservers();
     return true;
@@ -74,6 +79,11 @@ bool ConfigManager::save() {
 
     doc["login"]["userName"] = login.userName;
     doc["login"]["userPassword"] = login.userPassword;
+    
+    doc["timeout"]["t1start"] = timeout.t1start;
+    doc["timeout"]["t1end"] = timeout.t1end;
+    doc["timeout"]["t2start"] = timeout.t2start;
+    doc["timeout"]["t2end"] = timeout.t2end;
 
     File file = LittleFS.open(filePath, "w");
     if (!file) {
@@ -110,6 +120,12 @@ void ConfigManager::setDefaults() {
     login.userPassword          = "";
     login.adminOverrideName     = "value";
     login.adminOverridePassword = "value";
+
+    timeout.t1start = "22:00";
+    timeout.t2end   = "06:00";
+    timeout.t2start = "00:00";
+    timeout.t2end   = "00:00";
+
 }
 
 void ConfigManager::addObserver(ConfigObserver* observer){
@@ -134,26 +150,26 @@ void ConfigManager::updateObservers(){
 String ConfigManager::getApiDaily() const { return apis.daily; }
 String ConfigManager::getApiHourly() const { return apis.hourly; }
 
-void ConfigManager::setApiDaily(const String& v) { 
+void ConfigManager::setApiDaily(const String& v, bool end) { 
     apis.daily = v;
-    updateObservers();
+    if(end) updateObservers();
 }
-void ConfigManager::setApiHourly(const String& v) { 
+void ConfigManager::setApiHourly(const String& v, bool end) { 
     apis.hourly = v; 
-    updateObservers();
+    if(end) updateObservers();
 }
 
 // ---------------- WIFI ----------------
 String ConfigManager::getWifiSSID() const { return wifi.ssid; }
 String ConfigManager::getWifiPassword() const { return wifi.password; }
 
-void ConfigManager::setWifiSSID(const String& v) { 
+void ConfigManager::setWifiSSID(const String& v, bool end) { 
     wifi.ssid = v;
-    updateObservers();
+    if(end) updateObservers();
 }
-void ConfigManager::setWifiPassword(const String& v) { 
+void ConfigManager::setWifiPassword(const String& v, bool end) { 
     wifi.password = v;
-    updateObservers();
+    if(end) updateObservers();
 }
 
 // ---------------- TIME ----------------
@@ -161,17 +177,17 @@ bool ConfigManager::getAutoTime() const { return time.autoTime; }
 String ConfigManager::getTime() const { return time.time; }
 String ConfigManager::getDate() const { return time.date; }
 
-void ConfigManager::setAutoTime(bool v) { 
+void ConfigManager::setAutoTime(bool v, bool end) { 
     time.autoTime = v; 
-    updateObservers();
+    if(end) updateObservers();
 }
-void ConfigManager::setTime(const String& v) { 
+void ConfigManager::setTime(const String& v, bool end) { 
     time.time = v; 
-    updateObservers();
+    if(end) updateObservers();
 }
-void ConfigManager::setDate(const String& v) { 
+void ConfigManager::setDate(const String& v, bool end) { 
     time.date = v; 
-    updateObservers();
+    if(end) updateObservers();
 }
 
 // --------------- DISPLAY ---------------
@@ -179,17 +195,17 @@ bool ConfigManager::getShowTime() const { return display.showTime; }
 bool ConfigManager::getShowWeather() const { return display.showWeather; }
 bool ConfigManager::getShowDate() const { return display.showDate; }
 
-void ConfigManager::setShowTime(bool v) { 
+void ConfigManager::setShowTime(bool v, bool end) { 
     display.showTime = v; 
-    updateObservers();
+    if(end) updateObservers();
 }
-void ConfigManager::setShowWeather(bool v) { 
+void ConfigManager::setShowWeather(bool v, bool end) { 
     display.showWeather = v; 
-    updateObservers();
+    if(end) updateObservers();
 }
-void ConfigManager::setShowDate(bool v) { 
+void ConfigManager::setShowDate(bool v, bool end) { 
     display.showDate = v; 
-    updateObservers();
+    if(end) updateObservers();
 }
 
 // --------------- LOGIN -----------------
@@ -198,19 +214,44 @@ String ConfigManager::getUserPassword() const { return login.userPassword; }
 String ConfigManager::getAdminOverrideName() const { return login.adminOverrideName; }
 String ConfigManager::getAdminOverridePassword() const { return login.adminOverridePassword; }
 
-void ConfigManager::setUserName(const String& v) { 
+void ConfigManager::setUserName(const String& v, bool end) { 
     login.userName = v; 
-    updateObservers();
+    if(end) updateObservers();
 }
-void ConfigManager::setUserPassword(const String& v) { 
+void ConfigManager::setUserPassword(const String& v, bool end) { 
     login.userPassword = v; 
-    updateObservers();
+    if(end) updateObservers();
 }
-void ConfigManager::setAdminOverrideName(const String& v) { 
+void ConfigManager::setAdminOverrideName(const String& v, bool end) { 
     login.adminOverrideName = v; 
-    updateObservers();
+    if(end) updateObservers();
 }
-void ConfigManager::setAdminOverridePassword(const String& v) { 
+void ConfigManager::setAdminOverridePassword(const String& v, bool end) { 
     login.adminOverridePassword = v; 
-    updateObservers();
+    if(end) updateObservers();
+}
+
+// --------------- Timeout -----------------
+String ConfigManager::getTimeoutStart(int id) const{
+    return id == 1 ? timeout.t1start : id == 2 ? timeout.t2start : "";
+}
+String ConfigManager::getTimeoutEnd(int id) const{
+    return id == 1 ? timeout.t1end : id == 2 ? timeout.t2end : "";
+}
+
+void ConfigManager::setTimeoutStart(const String& v, int id, bool end){
+    if(id == 1){
+        timeout.t1start = v;
+    }else if(id == 2){
+        timeout.t2start = v;
+    }
+    if(end) updateObservers();
+}
+void ConfigManager::setTimeoutEnd(const String& v, int id, bool end){
+    if(id == 1){
+        timeout.t1end = v;
+    }else if(id == 2){
+        timeout.t2end = v;
+    }
+    if(end) updateObservers();
 }

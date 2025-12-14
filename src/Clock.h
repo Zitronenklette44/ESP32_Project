@@ -21,6 +21,7 @@ public:
 
     void onConfigChange() override{
         autoTime = ConfigManager::getInstance()->getAutoTime();
+        syncTimeNow();
     }
 
     static Clock* getInstance(){
