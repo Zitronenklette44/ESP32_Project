@@ -3,6 +3,7 @@
 #include "Stats.h"
 #include "Logs.h"
 #include "Clock.h"
+#include "Display.h"
 
 static Wlan* instance = nullptr;
 
@@ -189,6 +190,23 @@ bool Wlan::startWifi(long ttlMs) {
 
         instance->server.send(200, "text/plain", infos);
     });
+    server.on("/api/restartWlan", HTTP_GET, [](){
+        instance->stopTask = true;
+        instance->restart = true;
+    });
+    server.on("/api/restartDisplay", HTTP_GET, [](){
+        Display::getInstance()->restartDisplay();
+    });
+    server.on("/api/restartESP", HTTP_GET, [](){
+        ESP.restart();
+    });
+    server.on("/api/resetConfigs", HTTP_GET, [](){
+        ConfigManager::getInstance()->setDefaults();
+        ConfigManager::getInstance()->save();
+        ESP.restart();
+        Serial.println("Executed illegal Code");
+    });
+    
     
     
     server.serveStatic("/style.css", LittleFS, "/style.css");
@@ -205,6 +223,8 @@ bool Wlan::startWifi(long ttlMs) {
     data->self = this;
     data->ttlMs = ttlMs; 
     
+    Serial.println(WiFi.localIP().toString());
+
     // start task on Core 1
     xTaskCreatePinnedToCore(wifiTaskWrapper, "wifi", 8192, data, 1, &wifiHandler, 0);
     
@@ -382,7 +402,7 @@ void Wlan::handleSubmit() {
 	
 	bool autoTime = server.hasArg("autoTime");
     ConfigManager::getInstance()->setAutoTime(autoTime, false);
-    Serial.print("autoTime-> " + String(autoTime));
+    // Serial.println("autoTime-> " + String(autoTime));
 	if(!autoTime){
         String timeString = server.arg("time");
         ConfigManager::getInstance()->setTime(timeString, false);
@@ -392,10 +412,28 @@ void Wlan::handleSubmit() {
         ConfigManager::getInstance()->setDate(dateString, false);
         Serial.print("date-> " + dateString);
 	}
+
+    String timeout1start = server.arg("timeout1start");
+    String timeout1end = server.arg("timeout1end");
+    String timeout2start = server.arg("timeout2start");
+    String timeout2end = server.arg("timeout2end");
+
+    ConfigManager::getInstance()->setTimeoutStart(timeout1start, 1, false);
+    ConfigManager::getInstance()->setTimeoutEnd(timeout1end, 1, false);
+    ConfigManager::getInstance()->setTimeoutStart(timeout2start, 2, false);
+    ConfigManager::getInstance()->setTimeoutEnd(timeout2end, 2, false);
 	
-	Serial.println("Received WiFi credentials:");
-	Serial.println(ssid);
-	Serial.println(pass + "\n");
+    bool showTime = server.arg("showTime");
+    bool showWeather = server.arg("showWeather");
+    bool showDate = server.arg("showDate");
+
+    ConfigManager::getInstance()->setShowTime(showTime, false);
+    ConfigManager::getInstance()->setShowWeather(showWeather, false);
+    ConfigManager::getInstance()->setShowDate(showDate, false);
+
+	// Serial.println("Received WiFi credentials:");
+	// Serial.println(ssid);
+	// Serial.println(pass + "\n");
 
     ConfigManager::getInstance()->updateObservers();
     ConfigManager::getInstance()->save();

@@ -11,14 +11,23 @@ bool ConfigManager::load() {
     if (!fileExists()) {
         Serial.println("Config file missing, creating default...");
         setDefaults();
-        return save();
+        return false;//save();
     }
 
     File file = LittleFS.open(filePath, "r");
+    Serial.println("---- CONFIG FILE RAW ----");
+    while (file.available()) {
+        Serial.write(file.read()); // raw output, no formatting
+    }
+    Serial.println("\n---- END ----");
+
+    file = LittleFS.open(filePath, "r");
     if (!file) {
         Serial.println("Failed to open config file!");
         return false;
     }
+
+
 
     JsonDocument doc;
 
@@ -31,8 +40,8 @@ bool ConfigManager::load() {
         return save();
     }
 
-    apis.daily = doc["apis"]["daily"] | "";
-    apis.hourly = doc["apis"]["hourly"] | "";
+    apis.daily = doc["apis"]["daily"] | "error";
+    apis.hourly = doc["apis"]["hourly"] | "error";
 
     wifi.ssid = doc["wifiCredentials"]["ssid"] | "";
     wifi.password = doc["wifiCredentials"]["password"] | "";
@@ -55,6 +64,7 @@ bool ConfigManager::load() {
     timeout.t2start = doc["timeout"]["t2start"] | "";
     timeout.t2end = doc["timeout"]["t2end"] | "";
 
+    Serial.println("Successfully loaded configs");
     updateObservers();
     return true;
 }
@@ -102,6 +112,7 @@ bool ConfigManager::save() {
 }
 
 void ConfigManager::setDefaults() {
+    Serial.println("reset Values");
     apis.daily  = "key";
     apis.hourly = "key";
 

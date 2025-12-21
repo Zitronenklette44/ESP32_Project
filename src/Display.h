@@ -15,12 +15,23 @@ private:
 
     DisplaySettings displaySettings;
 
+    static Display* instance;
+
 public:
     Display();
     ~Display();
+
+    static Display* getInstance(){
+        if(!instance){
+            instance = new Display();
+        }
+        return instance;
+    }
     
     void onConfigChange() override{
+        // uint8_t temp = digitalRead(TFT_BL);
         restartDisplay();
+        // digitalWrite(TFT_BL, temp);
     }
 
     void init();
@@ -40,4 +51,5 @@ public:
     void restartDisplay();
     void displayOff();
     void displayOn();
+    void fullRedraw();
 };

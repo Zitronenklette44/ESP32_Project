@@ -24,14 +24,17 @@ public:
     ~Weather();
 
     void onConfigChange() override{
+        Serial.println("ChangedConfig notification weather");
         api_daily = ConfigManager::getInstance()->getApiDaily();
         api_hourly = ConfigManager::getInstance()->getApiHourly();
+        Serial.println("Values:" + api_daily + " " + api_hourly);
     }
 
     static Weather* getInstance(){
         if(!instance){
             instance = new Weather();
             ConfigManager::getInstance()->addObserver(instance);
+            instance->onConfigChange();
         }
         return instance;
     }

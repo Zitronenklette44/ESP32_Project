@@ -47,6 +47,7 @@ void setup(){
     ConfigManager::getInstance()->load();
 
     wlan.init();
+    Weather::getInstance();
     Clock::getInstance()->init();
     display.init();
 
@@ -98,6 +99,13 @@ void loop(){
                 onWlanConnection(false);
             }else{
                 onWlanConnection(true);
+            }
+        }
+
+        if(wlan.restart){
+            bool wlanState = Stats::getInstance()->getWifiStatus();
+            if(!wlanState){
+                wlan.startWifi(900000);
             }
         }
     }
@@ -174,7 +182,7 @@ void buttonCheck(void *parameter){
         if(topPressed != wasTopPressed && now - lastTopChange > debounceDelay){
             lastTopChange = now;
             if(topPressed && !wlan.isActive()){
-                wlan.startWifi(15*60*1000);
+                wlan.startWifi(900000);
                 Serial.println("Wlan pressed");
                 onWlanConnection(true);
             }

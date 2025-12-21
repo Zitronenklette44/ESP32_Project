@@ -42,6 +42,50 @@
                     console.log("Log update error:", e);
                 }
             }
+            
+            async function executeFunction(id) {
+                try {
+
+                    if (id === 3) {
+                        const ok = confirm(
+                            "⚠️ Achtung!\n\n" +
+                            "Alle Konfigurationen werden gelöschtinclusive der Api-Keys!\n Diese Müssen im Anschluss manuell neu hochgeladen werden!\n" +
+                            "Das Gerät startet danach neu.\n\n" +
+                            "Fortfahren?"
+                        );
+                        if (!ok) return;
+                    }
+
+                    let url = null;
+
+                    switch (id) {
+                        case 0:
+                            url = "api/restartWlan";
+                            break;
+                        case 1:
+                            url = "api/restartDisplay";
+                            break;
+                        case 2:
+                            url = "api/restartESP";
+                            break;
+                        case 3:
+                            url = "api/resetConfigs";
+                            break;
+                        default:
+                            console.warn("Unknown function id:", id);
+                            return;
+                    }
+
+                    const response = await fetch(url);
+
+                    if (!response.ok) {
+                        throw new Error("Request failed: " + response.status);
+                    }
+
+                } catch (e) {
+                    console.error("Execute function error:", e);
+                }
+            }
 
             async function updateInfos() {
                 try {
@@ -84,11 +128,10 @@
                     <td><p id="WIFISTATUS"></p></td>
                 </tr>
                 <tr>
-                    <td>IP-address:</td>
+                    <td>IP-address</td>
                     <td><p id="IPADDRESS"></p></td>
                 </tr>
             </table>
-            <br>
         </fieldset>
         <fieldset>
             <legend>Sensors</legend>
@@ -98,7 +141,7 @@
                     <td><p id="LAST_CONNECTION"></p></td>
                 </tr>
                 <tr>
-                    <td>Last API call:</td>
+                    <td>Last API call</td>
                     <td><p id="LAST_API_CALL"></p></td>
                 </tr>
             </table>
@@ -107,12 +150,12 @@
             <legend>Actions</legend>
             <table class="equalSize">
                 <tr>
-                    <td><input type="button" value="Connect Wifi"></td>
-                    <td><input type="button" value="Restart"></td>
+                    <td><input type="button" value="Connect Wifi" onclick="executeFunction(0)"></td>
+                    <td><input type="button" value="Restart" onclick="executeFunction(2)"></td>
                 </tr>
                 <tr>
-                    <td><input type="button" value="Restart Display"></td>
-                    <td><input type="button" value="Reset Konfiguration"></td>
+                    <td><input type="button" value="Restart Display" onclick="executeFunction(1)"></td>
+                    <td><input type="button" value="Reset Konfiguration" onclick="executeFunction(3)"></td>
                 </tr>
             </table>
         </fieldset>

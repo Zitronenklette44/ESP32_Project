@@ -47,6 +47,7 @@ public:
         adminName = ConfigManager::getInstance()->getAdminOverrideName();
         adminPSW = ConfigManager::getInstance()->getAdminOverridePassword();
     }
+    bool restart;
 
     Wlan();
     ~Wlan();

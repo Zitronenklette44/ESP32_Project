@@ -46,7 +46,6 @@ struct LoginConfig {
 
 class ConfigManager {
 private:
-    void setDefaults();
     bool fileExists();
     String filePath = "/coreValues.env";
     vector<ConfigObserver*> observers;
@@ -68,6 +67,7 @@ public:
         return instance;
     }
 
+    void setDefaults(); 
     bool load();
     bool save();
     void updateObservers();

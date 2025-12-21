@@ -6,6 +6,8 @@
 
 // #define TFT_BL 32
 
+Display* Display::instance = nullptr;
+
 Display::Display() : tft(TFT_eSPI()), lastx(0), lasty(0) {}
 Display::~Display() {}
 bool firstTimeBoot = true;
@@ -305,11 +307,84 @@ void Display::drawIcon(int id, int x, int y, uint16_t color){
 }
 
 void Display::restartDisplay(){
-    oldDate = "";
-    oldTime = "";
-    oldWifi = false;
+    ConfigManager::getInstance()->removeObserver(this);
     init();
+    ConfigManager::getInstance()->addObserver(this);
+
+    fullRedraw();
 }
+
+void Display::fullRedraw() {
+    int yPos = 0;
+
+    // --- Date ---
+    if (ConfigManager::getInstance()->getShowDate()) {
+        yPos += 10;
+        tft.setTextSize(2);
+        tft.drawString(" ", -100, -100); // clear temporary
+        String date = Clock::getInstance()->getTime().trimDate();
+        int width = tft.textWidth(date);
+        tft.fillRect((240 - width) / 2, yPos, width, 15, gray);
+        tft.drawString(date, (240 - width) / 2, yPos);
+        yPos = 52;
+    }
+
+    // --- Time ---
+    if (ConfigManager::getInstance()->getShowTime()) {
+        tft.setTextSize(6);
+        tft.drawString(" ", -100, -100);
+        if (yPos != 52) {
+            yPos = 67 - tft.fontHeight() / 2;
+        }
+        String time = Clock::getInstance()->getTime().trimTime();
+        int width = tft.textWidth(time.substring(0, 5));
+
+        // hours + minutes
+        tft.fillRect((240 - width) / 2 - 5, yPos, width, tft.fontHeight() + 3, TFT_BLACK);
+        tft.drawString(time.substring(0, 5), (240 - width) / 2 - 5, yPos);
+
+        // seconds
+        tft.setTextSize(2);
+        tft.drawString(" ", -100, -100);
+        tft.fillRect((240 - width) / 2 + width - 3, yPos, width, tft.fontHeight() + 7, TFT_BLACK);
+        tft.drawString(time.substring(6), (240 - width) / 2 + width - 3, yPos);
+    }
+
+    // --- Wifi Icon ---
+    bool wifi = Stats::getInstance()->getWifiStatus();
+    if (!wifi) tft.fillRect(10, 115, 20, 20, TFT_BLACK); 
+    else drawIcon(0, 10, 115, TFT_CYAN);
+
+    // --- Weather ---
+    if (ConfigManager::getInstance()->getShowWeather()) {
+        tft.setTextSize(2);
+
+        float maxTemp = Weather::getInstance()->getMaxTemperatur();
+        float temp    = Weather::getInstance()->getTemperatur();
+        float minTemp = Weather::getInstance()->getMinTemperature();
+
+        // clear weather area
+        tft.fillRect(40, 110, 100, 25, TFT_BLACK);
+
+        // draw current temp
+        drawIcon(3, 40, 110, TFT_LIGHTGREY);
+        tft.drawString(String(temp), 65, 115);
+
+        // precipitation icon
+        bool precipitation = Weather::getInstance()->getPrecipitation() != 0;
+        tft.fillRect(150, 110, 30, 20, TFT_BLACK);
+        if (precipitation) drawIcon(5, 150, 110, gray);
+        // else: leave blank or optional sun icon
+    }
+
+    // --- Reset old state trackers ---
+    oldDate = Clock::getInstance()->getTime().trimDate();
+    oldTime = Clock::getInstance()->getTime().trimTime();
+    oldWifi = Stats::getInstance()->getWifiStatus();
+    oldPrecipitation = Weather::getInstance()->getPrecipitation() != 0;
+    updateCounter = 0;
+}
+
 
 void Display::displayOff(){
     digitalWrite(TFT_BL, LOW); 
