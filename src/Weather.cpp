@@ -13,8 +13,8 @@ Weather::~Weather(){}
 
 void Weather::refreshData(bool hourly){
     if(Stats::getInstance()->getWifiStatus()){
-        Serial.println("hourly->" + api_hourly);
-        Serial.println("daily->" + api_daily);
+        // Serial.println("hourly->" + api_hourly);
+        // Serial.println("daily->" + api_daily);
         HTTPClient http;
         if(hourly){
             http.begin(api_hourly);

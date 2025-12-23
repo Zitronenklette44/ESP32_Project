@@ -71,6 +71,7 @@ bool Wlan::startWifi(long ttlMs) {
             Logs::getInstance()->addLog("Connected to WiFi!");
             Stats::getInstance()->setWifiStatus(true);
             Stats::getInstance()->setLastConnection(Clock::getInstance()->getTime());
+            Stats::getInstance()->setIpAddress(WiFi.localIP().toString());
             returnValue = true;
             break;
         }
@@ -83,6 +84,7 @@ bool Wlan::startWifi(long ttlMs) {
         Logs::getInstance()->addLog("Failed to connect to WiFi, starting AP...");
         WiFi.mode(WIFI_AP);
         WiFi.softAP("ESP_Test", "123456789");
+        Stats::getInstance()->setIpAddress(WiFi.localIP().toString());
     }
 
     // if (!MDNS.begin("esp32")) {  // hostname: esp32.local

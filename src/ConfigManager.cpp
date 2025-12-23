@@ -15,11 +15,11 @@ bool ConfigManager::load() {
     }
 
     File file = LittleFS.open(filePath, "r");
-    Serial.println("---- CONFIG FILE RAW ----");
-    while (file.available()) {
-        Serial.write(file.read()); // raw output, no formatting
-    }
-    Serial.println("\n---- END ----");
+    // Serial.println("---- CONFIG FILE RAW ----");
+    // while (file.available()) {
+    //     Serial.write(file.read()); // raw output, no formatting
+    // }
+    // Serial.println("\n---- END ----");
 
     file = LittleFS.open(filePath, "r");
     if (!file) {

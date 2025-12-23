@@ -116,8 +116,16 @@ void Display::update(bool showWeather){
     
     bool wifi = Stats::getInstance()->getWifiStatus();
     if(wifi != oldWifi){
-        if(!wifi) tft.fillRect(10, 115, 20, 20, TFT_BLACK); 
-        else drawIcon(0, 10, 115, TFT_CYAN);
+        if(!wifi) {
+            tft.fillRect(10, 115, 20, 20, TFT_BLACK); 
+            tft.fillRect(180, 110, 50, 20, TFT_BLACK);
+        } else {
+            drawIcon(0, 10, 115, TFT_CYAN);
+            tft.setTextSize(2);
+            tft.drawString(" ", -100, -100);
+            tft.drawString(Stats::getInstance()->getIpAddress().substring(11, 15), 180, 110);
+            Serial.println("IP-drawn ->" + Stats::getInstance()->getIpAddress().substring(11, 15));
+        }
         oldWifi = wifi;
     }
 
