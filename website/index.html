@@ -10,9 +10,42 @@
 <body>
     <form action="complete.html" method="POST" enctype="multipart/form-data">
         <a class="dev" href="login.html">Debug</a>
+        <script>
+            function updateGreeting() {
+                const now = new Date();
+                const day = now.getDate();
+                const month = now.getMonth(); // 0 = January
+                
+                let text = "";
+                
+                // December
+                if (month === 11) {
+                    if (day >= 20 && day <= 29) {
+                        text = "Frohe Weihnachten";
+                    } else if (day >= 30) {
+                        text = "Frohes Neues";
+                    }
+                }
+                
+                // January
+                if (month === 0 && day === 1) {
+                    text = "Frohes Neues";
+                }
+
+                const p = document.getElementById("greeting");
+                if (p && text !== "") {
+                    p.textContent = text;
+                }
+            }
+            // Run once on page load
+            document.addEventListener("DOMContentLoaded", () => {
+                updateGreeting();
+            });
+        </script>
 
         <div name="main">
             <h1>ESP32_Website</h1>
+            <p id="greeting" class="greeting"></p>
             <fieldset>
                 <legend>Wlan-Settings</legend>
                 <table>
@@ -118,6 +151,6 @@
 <footer>
     <div class="left"><a href="https://github.com/Zitronenklette44/ESP32_Project/">GitHub</a></div>
     <div class="middle">ESP_32 Project<br>LILYGO Q125<br></div>
-    <div class="right">© 2025 Zitronenklette44<br>Version: 0.1</div>
+    <div class="right">© 2025 Zitronenklette44<br>Version: 1.0</div>
 </footer> 
 </html>

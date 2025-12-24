@@ -49,7 +49,7 @@
                     if (id === 3) {
                         const ok = confirm(
                             "⚠️ Achtung!\n\n" +
-                            "Alle Konfigurationen werden gelöschtinclusive der Api-Keys!\n Diese Müssen im Anschluss manuell neu hochgeladen werden!\n" +
+                            "Alle Konfigurationen werden gelöscht. Inclusive der Api-Keys!\n Diese Müssen im Anschluss manuell neu hochgeladen werden!\n" +
                             "Das Gerät startet danach neu.\n\n" +
                             "Fortfahren?"
                         );
@@ -156,6 +156,32 @@
                 <tr>
                     <td><input type="button" value="Restart Display" onclick="executeFunction(1)"></td>
                     <td><input type="button" value="Reset Konfiguration" onclick="executeFunction(3)"></td>
+                </tr>
+            </table>
+        </fieldset>
+
+        <fieldset>
+            <legend>Statistiken</legend>
+            <table>
+                <tr>
+                    <td>Arbeitszeit:</td>
+                    <td>1 Monat, 9 Tage</td>
+                </tr>
+                <tr>
+                    <td>Code Zeilen hinzugefügt:</td>
+                    <td>4962</td>
+                </tr>
+                <tr>
+                    <td>Code Zeilen gelöscht:</td>
+                    <td>1416</td>
+                </tr>
+                <tr>
+                    <td>Verwendete Sprachen:</td>
+                    <td>5: C++, C, HTML, Javascript, CSS</td>
+                </tr>
+                <tr>
+                    <td>Insgesammte Dateien:</td>
+                    <td>26</td>
                 </tr>
             </table>
         </fieldset>

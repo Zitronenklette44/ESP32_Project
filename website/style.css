@@ -222,3 +222,30 @@ table.equalSize td {
     border-radius: 15px;
     padding: 5px;
 }
+
+.greeting{
+    text-align: center;
+    font-size: 1.4em;
+    font-weight: bold;
+    margin: 10px 0 20px 0;
+    animation: pulseColor 2.5s ease-in-out infinite;
+}
+
+@keyframes pulseColor {
+    0% {
+        color: color-mix(in srgb, var(--text) 80%, red);
+        text-shadow: 0 0 4px color-mix(in srgb, red 40%, black);
+    }
+    50% {
+        color: #ffffff;
+        text-shadow: 0 0 10px #ffffff;
+    }
+    100% {
+        color: color-mix(in srgb, var(--text) 80%, red);
+        text-shadow: 0 0 4px color-mix(in srgb, red 40%, black);
+    }
+}
+
+.greeting:empty{
+    display: none;
+}
